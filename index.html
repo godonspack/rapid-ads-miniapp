@@ -2,182 +2,482 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rapid Ads</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
-      padding: 20px;
       font-family: Arial, sans-serif;
-      background: #f2f5fb;
+      background: #f4f7fb;
       color: #172033;
     }
 
     .app {
-      max-width: 480px;
+      max-width: 520px;
       margin: auto;
+      padding: 18px;
     }
 
-    .header {
+    .hero {
       background: linear-gradient(135deg, #1769ff, #6845e8);
       color: white;
-      padding: 25px;
-      border-radius: 20px;
-      margin-bottom: 20px;
+      border-radius: 22px;
+      padding: 24px;
+      margin-bottom: 16px;
     }
 
-    .header h1 { margin: 0 0 8px; }
-    .header p { margin: 0; line-height: 1.5; }
+    .hero h1 {
+      margin: 0 0 7px;
+      font-size: 27px;
+    }
 
-    .card {
+    .hero p {
+      margin: 0;
+      opacity: .9;
+      line-height: 1.5;
+    }
+
+    .balance {
       background: white;
       border-radius: 18px;
       padding: 20px;
       margin-bottom: 16px;
-      box-shadow: 0 3px 14px #0000000c;
+      box-shadow: 0 3px 15px rgba(0,0,0,.06);
     }
 
-    .card h2 {
+    .balance-label {
+      color: #667085;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .balance-value {
+      font-size: 30px;
+      font-weight: bold;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 3px 15px rgba(0,0,0,.05);
+    }
+
+    .stat-title {
+      font-size: 13px;
+      color: #667085;
+      margin-bottom: 7px;
+    }
+
+    .stat-value {
       font-size: 19px;
-      margin: 0 0 10px;
+      font-weight: bold;
     }
 
-    .details {
+    .section-title {
+      font-size: 19px;
+      font-weight: bold;
+      margin: 20px 0 10px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 12px;
+      box-shadow: 0 3px 15px rgba(0,0,0,.05);
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
+
+    .card-text {
       color: #667085;
       font-size: 14px;
-      line-height: 1.8;
-      margin-bottom: 16px;
+      line-height: 1.5;
+      margin-bottom: 14px;
     }
 
     button {
       width: 100%;
-      padding: 15px;
       border: 0;
       border-radius: 12px;
+      padding: 14px;
       background: #1769ff;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: bold;
     }
 
-    button:disabled { opacity: 0.6; }
+    button.secondary {
+      background: #eef3ff;
+      color: #1769ff;
+    }
+
+    button:disabled {
+      opacity: .55;
+    }
+
+    .menu {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .menu button {
+      background: white;
+      color: #172033;
+      box-shadow: 0 3px 12px rgba(0,0,0,.05);
+    }
 
     #status {
       text-align: center;
-      padding: 15px 5px;
-      font-size: 14px;
-      line-height: 1.6;
-      overflow-wrap: anywhere;
+      color: #667085;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 15px 0;
     }
 
-    .note {
-      color: #667085;
-      font-size: 12px;
-      text-align: center;
+    .notice {
+      background: #fff8e6;
+      border-radius: 14px;
+      padding: 13px;
+      color: #765600;
+      font-size: 13px;
       line-height: 1.5;
+      margin-top: 12px;
+    }
+
+    .footer {
+      text-align: center;
+      color: #98a2b3;
+      font-size: 12px;
+      padding: 20px 0;
     }
   </style>
 </head>
 
 <body>
-  <main class="app">
-    <section class="header">
-      <h1>🚀 Rapid Ads</h1>
-      <p>Watch advertisements and earn rewards.</p>
-    </section>
 
-    <section class="card">
-      <h2>📺 AdsGram Reward Advertisement</h2>
+<main class="app">
 
-      <div class="details">
-        Network: AdsGram<br>
-        Reward: $0.01 (pending integration)<br>
-        Block ID: 51635
-      </div>
+  <section class="hero">
+    <h1>🚀 Rapid Ads</h1>
+    <p>Complete tasks, earn rewards and grow your balance.</p>
+  </section>
 
-      <button id="watchButton" type="button">
-        ▶️ Watch Advertisement
-      </button>
-    </section>
+  <section class="balance">
+    <div class="balance-label">AVAILABLE BALANCE</div>
+    <div class="balance-value">Check in Telegram</div>
 
-    <div id="status" aria-live="polite">
-      Ready. Open this Mini App inside Telegram to test AdsGram.
+    <div class="notice">
+      💡 Your official balance is maintained by the Rapid Ads bot.
+      Use the buttons below to access your earning features.
+    </div>
+  </section>
+
+  <section class="stats">
+
+    <div class="stat">
+      <div class="stat-title">🎁 Daily Bonus</div>
+      <div class="stat-value">$0.01</div>
     </div>
 
-    <p class="note">
-      Ad completion does not yet credit your Rapid Ads balance.
-      Reward verification will be connected separately.
-    </p>
-  </main>
+    <div class="stat">
+      <div class="stat-title">💵 Minimum Withdraw</div>
+      <div class="stat-value">$0.05</div>
+    </div>
 
-  <script>
-    const tg = window.Telegram && window.Telegram.WebApp;
-    const button = document.getElementById("watchButton");
-    const statusBox = document.getElementById("status");
+  </section>
 
-    if (tg) {
-      tg.ready();
-      tg.expand();
+  <div class="section-title">🎯 Earn Rewards</div>
+
+  <section class="card">
+
+    <div class="card-title">
+      📺 AdsGram Reward Advertisement
+    </div>
+
+    <div class="card-text">
+      Watch a rewarded advertisement to receive the configured Rapid Ads reward.
+      Watching the advertisement is optional and is not required to use the other
+      features of Rapid Ads.
+    </div>
+
+    <button id="watchAd">
+      ▶️ Watch AdsGram Advertisement
+    </button>
+
+    <div id="status" aria-live="polite">
+      AdsGram is ready when the service is active.
+    </div>
+
+  </section>
+
+  <section class="card">
+
+    <div class="card-title">
+      🎁 Daily Bonus
+    </div>
+
+    <div class="card-text">
+      Claim your daily Rapid Ads bonus from the bot.
+    </div>
+
+    <button class="secondary" id="bonusButton">
+      🎁 Claim Daily Bonus
+    </button>
+
+  </section>
+
+  <section class="card">
+
+    <div class="card-title">
+      👥 Refer & Earn
+    </div>
+
+    <div class="card-text">
+      Invite friends and receive referral rewards.
+    </div>
+
+    <button class="secondary" id="referButton">
+      👥 Open Referrals
+    </button>
+
+  </section>
+
+  <div class="section-title">💼 Your Account</div>
+
+  <div class="menu">
+
+    <button id="accountButton">
+      👤 Account
+    </button>
+
+    <button id="walletButton">
+      💳 Wallet
+    </button>
+
+    <button id="withdrawButton">
+      💰 Withdraw
+    </button>
+
+    <button id="helpButton">
+      ℹ️ Help
+    </button>
+
+  </div>
+
+  <div class="footer">
+    Rapid Ads • Earn responsibly
+  </div>
+
+</main>
+
+<script>
+
+  const tg =
+    window.Telegram &&
+    window.Telegram.WebApp;
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  const BOT_USERNAME = "rapidads_bot";
+
+  function openBot(command) {
+
+    const url =
+      "https://t.me/" +
+      BOT_USERNAME +
+      "?start=" +
+      encodeURIComponent(command);
+
+    if (
+      tg &&
+      typeof tg.openTelegramLink === "function"
+    ) {
+      tg.openTelegramLink(url);
+    } else {
+      window.location.href = url;
     }
 
-    let adController = null;
+  }
 
-    function setStatus(message) {
-      statusBox.textContent = message;
-    }
+  /*
+   * AdsGram
+   *
+   * Block ID:
+   * 51635
+   */
 
-    try {
-      if (window.Adsgram &&
-          typeof window.Adsgram.init === "function") {
-        adController = window.Adsgram.init({
+  let AdController = null;
+
+  try {
+
+    if (
+      window.Adsgram &&
+      typeof window.Adsgram.init === "function"
+    ) {
+
+      AdController =
+        window.Adsgram.init({
           blockId: "51635"
         });
 
-        setStatus("AdsGram initialized. Tap Watch Advertisement to begin.");
-      } else {
-        setStatus(
-          "AdsGram SDK did not load. Check your internet connection and reopen the Mini App."
-        );
-      }
-    } catch (error) {
-      setStatus("AdsGram could not initialize. Please reopen the Mini App.");
     }
 
-    button.addEventListener("click", async function () {
-      if (!adController) {
-        setStatus("AdsGram is not ready. Reopen the Mini App and try again.");
+  } catch (error) {
+
+    AdController = null;
+
+  }
+
+  const watchButton =
+    document.getElementById("watchAd");
+
+  const status =
+    document.getElementById("status");
+
+  watchButton.addEventListener(
+    "click",
+    async function () {
+
+      if (!AdController) {
+
+        status.textContent =
+          "AdsGram is not currently active. Please try again later.";
+
         return;
+
       }
 
-      button.disabled = true;
-      setStatus("Loading advertisement...");
+      watchButton.disabled = true;
+
+      status.textContent =
+        "⏳ Loading advertisement...";
 
       try {
-        const result = await adController.show();
 
-        if (result && result.done === true && !result.error) {
-          setStatus(
-            "✅ AdsGram reports the ad was completed. Your TBC balance has NOT been credited yet."
-          );
+        const result =
+          await AdController.show();
+
+        if (
+          result &&
+          result.done === true &&
+          result.error !== true
+        ) {
+
+          status.textContent =
+            "✅ Advertisement completed. Reward verification will be processed separately.";
+
         } else {
-          setStatus(
-            "The ad ended, but completion was not confirmed. No reward was credited."
-          );
+
+          status.textContent =
+            "Advertisement ended without a confirmed reward.";
+
         }
+
       } catch (error) {
-        setStatus(
-          "The advertisement could not be completed. Please try again later."
-        );
+
+        status.textContent =
+          "❌ Advertisement could not be completed.";
+
       } finally {
-        button.disabled = false;
+
+        watchButton.disabled = false;
+
       }
-    });
-  </script>
+
+    }
+  );
+
+
+  /*
+   * Existing Rapid Ads bot features
+   */
+
+  document
+    .getElementById("bonusButton")
+    .addEventListener(
+      "click",
+      function () {
+        openBot("claimbonus");
+      }
+    );
+
+
+  document
+    .getElementById("referButton")
+    .addEventListener(
+      "click",
+      function () {
+        openBot("refer");
+      }
+    );
+
+
+  document
+    .getElementById("accountButton")
+    .addEventListener(
+      "click",
+      function () {
+        openBot("account");
+      }
+    );
+
+
+  document
+    .getElementById("walletButton")
+    .addEventListener(
+      "click",
+      function () {
+        openBot("wallet");
+      }
+    );
+
+
+  document
+    .getElementById("withdrawButton")
+    .addEventListener(
+      "click",
+      function () {
+        openBot("requestwithdrawal");
+      }
+    );
+
+
+  document
+    .getElementById("helpButton")
+    .addEventListener(
+      "click",
+      function () {
+        openBot("help");
+      }
+    );
+
+</script>
+
 </body>
   </html>
