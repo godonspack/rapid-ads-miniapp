@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rapid Ads</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f2f5fb;
+      color: #172033;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: auto;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1769ff, #6845e8);
+      color: white;
+      padding: 25px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .header h1 { margin: 0 0 8px; }
+    .header p { margin: 0; line-height: 1.5; }
+
+    .card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 3px 14px #0000000c;
+    }
+
+    .card h2 {
+      font-size: 19px;
+      margin: 0 0 10px;
+    }
+
+    .details {
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.8;
+      margin-bottom: 16px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: 0;
+      border-radius: 12px;
+      background: #1769ff;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    button:disabled { opacity: 0.6; }
+
+    #status {
+      text-align: center;
+      padding: 15px 5px;
+      font-size: 14px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      color: #667085;
+      font-size: 12px;
+      text-align: center;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <section class="header">
+      <h1>🚀 Rapid Ads</h1>
+      <p>Watch advertisements and earn rewards.</p>
+    </section>
+
+    <section class="card">
+      <h2>📺 AdsGram Reward Advertisement</h2>
+
+      <div class="details">
+        Network: AdsGram<br>
+        Reward: $0.01 (pending integration)<br>
+        Block ID: 51635
+      </div>
+
+      <button id="watchButton" type="button">
+        ▶️ Watch Advertisement
+      </button>
+    </section>
+
+    <div id="status" aria-live="polite">
+      Ready. Open this Mini App inside Telegram to test AdsGram.
+    </div>
+
+    <p class="note">
+      Ad completion does not yet credit your Rapid Ads balance.
+      Reward verification will be connected separately.
+    </p>
+  </main>
+
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const button = document.getElementById("watchButton");
+    const statusBox = document.getElementById("status");
+
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    let adController = null;
+
+    function setStatus(message) {
+      statusBox.textContent = message;
+    }
+
+    try {
+      if (window.Adsgram &&
+          typeof window.Adsgram.init === "function") {
+        adController = window.Adsgram.init({
+          blockId: "51635"
+        });
+
+        setStatus("AdsGram initialized. Tap Watch Advertisement to begin.");
+      } else {
+        setStatus(
+          "AdsGram SDK did not load. Check your internet connection and reopen the Mini App."
+        );
+      }
+    } catch (error) {
+      setStatus("AdsGram could not initialize. Please reopen the Mini App.");
+    }
+
+    button.addEventListener("click", async function () {
+      if (!adController) {
+        setStatus("AdsGram is not ready. Reopen the Mini App and try again.");
+        return;
+      }
+
+      button.disabled = true;
+      setStatus("Loading advertisement...");
+
+      try {
+        const result = await adController.show();
+
+        if (result && result.done === true && !result.error) {
+          setStatus(
+            "✅ AdsGram reports the ad was completed. Your TBC balance has NOT been credited yet."
+          );
+        } else {
+          setStatus(
+            "The ad ended, but completion was not confirmed. No reward was credited."
+          );
+        }
+      } catch (error) {
+        setStatus(
+          "The advertisement could not be completed. Please try again later."
+        );
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+  </html>
