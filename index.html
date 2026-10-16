@@ -2,13 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0,
+        maximum-scale=1.0, user-scalable=no">
+
+  <meta name="theme-color" content="#10182f">
   <title>Rapid Ads</title>
 
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
   <style>
+    :root {
+      --bg: #f4f6fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #7a8498;
+      --blue: #246bfe;
+      --purple: #7048e8;
+      --border: #e9edf5;
+      --green: #159968;
+    }
+
     * {
       box-sizing: border-box;
     }
@@ -16,162 +30,449 @@
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f7fb;
-      color: #172033;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
     }
 
     .app {
       max-width: 520px;
       margin: auto;
-      padding: 18px;
+      padding: 16px 15px 105px;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+    }
+
+    .brand span {
+      color: var(--blue);
+    }
+
+    .profile {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      background: #e5ecff;
+      color: var(--blue);
+      font-size: 20px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+      animation: appear .16s ease-out;
+    }
+
+    @keyframes appear {
+      from { opacity: .6; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .hero {
-      background: linear-gradient(135deg, #1769ff, #6845e8);
+      background: linear-gradient(135deg, #1769ff, #7048e8);
+      border-radius: 23px;
+      padding: 23px 21px;
       color: white;
-      border-radius: 22px;
-      padding: 24px;
       margin-bottom: 16px;
     }
 
+    .eyebrow {
+      font-size: 12px;
+      font-weight: bold;
+      opacity: .85;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
     .hero h1 {
-      margin: 0 0 7px;
+      margin: 10px 0 8px;
       font-size: 27px;
+      line-height: 1.2;
     }
 
     .hero p {
       margin: 0;
-      opacity: .9;
-      line-height: 1.5;
+      font-size: 14px;
+      line-height: 1.6;
+      opacity: .92;
     }
 
-    .balance {
-      background: white;
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 3px 15px rgba(0,0,0,.06);
+    .hero-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 19px;
     }
 
-    .balance-label {
-      color: #667085;
+    .hero-actions button {
+      flex: 1;
+      padding: 13px 8px;
+      border-radius: 12px;
+      border: 0;
+      font-weight: bold;
       font-size: 13px;
-      margin-bottom: 6px;
     }
 
-    .balance-value {
-      font-size: 30px;
+    .hero-primary {
+      background: white;
+      color: var(--blue);
+    }
+
+    .hero-secondary {
+      background: rgba(255,255,255,.17);
+      color: white;
+      border: 1px solid rgba(255,255,255,.35) !important;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 24px 0 12px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .section-heading button {
+      border: 0;
+      background: transparent;
+      color: var(--blue);
+      font-size: 13px;
       font-weight: bold;
     }
 
-    .stats {
+    .grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-
-    .stat {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 3px 15px rgba(0,0,0,.05);
-    }
-
-    .stat-title {
-      font-size: 13px;
-      color: #667085;
-      margin-bottom: 7px;
-    }
-
-    .stat-value {
-      font-size: 19px;
-      font-weight: bold;
-    }
-
-    .section-title {
-      font-size: 19px;
-      font-weight: bold;
-      margin: 20px 0 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 11px;
     }
 
     .card {
-      background: white;
-      border-radius: 18px;
-      padding: 18px;
+      min-width: 0;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 16px;
       margin-bottom: 12px;
-      box-shadow: 0 3px 15px rgba(0,0,0,.05);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .stat-value {
+      font-size: 21px;
+      font-weight: 800;
+      margin-top: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .card-icon {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: #edf2ff;
+      font-size: 22px;
+      margin-bottom: 12px;
     }
 
     .card-title {
-      font-size: 17px;
-      font-weight: bold;
-      margin-bottom: 7px;
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 8px;
     }
 
     .card-text {
-      color: #667085;
-      font-size: 14px;
-      line-height: 1.5;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
       margin-bottom: 14px;
     }
 
-    button {
+    .button {
+      display: block;
       width: 100%;
       border: 0;
       border-radius: 12px;
       padding: 14px;
-      background: #1769ff;
+      background: var(--blue);
       color: white;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: bold;
-    }
-
-    button.secondary {
-      background: #eef3ff;
-      color: #1769ff;
-    }
-
-    button:disabled {
-      opacity: .55;
-    }
-
-    .menu {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .menu button {
-      background: white;
-      color: #172033;
-      box-shadow: 0 3px 12px rgba(0,0,0,.05);
-    }
-
-    #status {
       text-align: center;
-      color: #667085;
-      font-size: 13px;
-      line-height: 1.5;
-      margin: 15px 0;
+    }
+
+    .button.secondary {
+      background: #edf2ff;
+      color: var(--blue);
+    }
+
+    .button.dark {
+      background: #182442;
+      color: white;
+    }
+
+    .button.green {
+      background: #e3f7ed;
+      color: #087c4c;
+    }
+
+    .button + .button {
+      margin-top: 9px;
     }
 
     .notice {
-      background: #fff8e6;
-      border-radius: 14px;
+      border: 1px solid #f2e5bd;
+      background: #fff9e9;
+      color: #775900;
+      border-radius: 13px;
       padding: 13px;
-      color: #765600;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+
+    .info-box {
+      background: #eef4ff;
+      color: #274e9e;
+      border-radius: 13px;
+      padding: 13px;
+      font-size: 12px;
+      line-height: 1.6;
+      margin: 12px 0;
+    }
+
+    .row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .row .card-icon {
+      flex-shrink: 0;
+    }
+
+    .row-content {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .pill {
+      display: inline-block;
+      border-radius: 30px;
+      background: #fff2d6;
+      color: #8a5b00;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 9px;
+    }
+
+    .pill.blue {
+      background: #e9efff;
+      color: #2458c7;
+    }
+
+    .pill.green {
+      background: #e0f6eb;
+      color: #087c4c;
+    }
+
+    .page-title {
+      font-size: 25px;
+      font-weight: 800;
+      margin: 8px 0;
+    }
+
+    .page-description {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0 0 20px;
+    }
+
+    .list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
       font-size: 13px;
-      line-height: 1.5;
-      margin-top: 12px;
+    }
+
+    .list-item:last-child {
+      border-bottom: 0;
+    }
+
+    .list-item span:first-child {
+      color: var(--muted);
+    }
+
+    .list-item strong {
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .field {
+      margin: 13px 0;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 7px;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      min-width: 0;
+      border: 1px solid #dce2ee;
+      background: white;
+      color: var(--text);
+      border-radius: 11px;
+      padding: 13px;
+      font-size: 16px;
+    }
+
+    .field textarea {
+      min-height: 85px;
+      resize: vertical;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .empty-state .big-icon {
+      font-size: 35px;
+      margin-bottom: 10px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      z-index: 10;
+      left: 50%;
+      bottom: 0;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 520px;
+      padding: 9px 4px calc(9px + env(safe-area-inset-bottom));
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      background: white;
+      border-top: 1px solid var(--border);
+    }
+
+    .nav-button {
+      border: 0;
+      background: transparent;
+      color: #929bad;
+      min-width: 0;
+      min-height: 52px;
+      padding: 5px 1px;
+      font-size: 10px;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .nav-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .nav-button.active {
+      color: var(--blue);
     }
 
     .footer {
       text-align: center;
-      color: #98a2b3;
-      font-size: 12px;
+      font-size: 11px;
+      color: #9ba4b5;
       padding: 20px 0;
+    }
+
+    #toast {
+      display: none;
+      position: fixed;
+      z-index: 20;
+      left: 15px;
+      right: 15px;
+      bottom: 90px;
+      max-width: 490px;
+      margin: auto;
+      border-radius: 13px;
+      padding: 14px;
+      background: #172033;
+      color: white;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 360px) {
+      .app {
+        padding-left: 11px;
+        padding-right: 11px;
+      }
+
+      .nav-button {
+        font-size: 9px;
+      }
+
+      .nav-icon {
+        font-size: 18px;
+      }
+
+      .stat-value {
+        font-size: 18px;
+      }
     }
   </style>
 </head>
@@ -180,112 +481,506 @@
 
 <main class="app">
 
-  <section class="hero">
-    <h1>🚀 Rapid Ads</h1>
-    <p>Complete tasks, earn rewards and grow your balance.</p>
+  <header class="topbar">
+    <div class="brand">🚀 Rapid <span>Ads</span></div>
+
+    <button class="profile"
+            type="button"
+            aria-label="Open account"
+            data-go="account">👤</button>
+  </header>
+
+
+  <!-- HOME -->
+
+  <section class="page active" id="page-home">
+
+    <div class="hero">
+      <div class="eyebrow">Your earning space</div>
+
+      <h1>Welcome to Rapid Ads 🚀</h1>
+
+      <p>
+        Discover sponsored opportunities, invite friends
+        and manage your rewards in one place.
+      </p>
+
+      <div class="hero-actions">
+        <button class="hero-primary" type="button"
+                data-go="earn">🎯 Explore Earn</button>
+
+        <button class="hero-secondary" type="button"
+                data-go="wallet">💰 My Wallet</button>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+        <div class="stat-label">💵 Available balance</div>
+        <div class="stat-value">Check in bot</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">🎁 Daily bonus</div>
+        <div class="stat-value">$0.01</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">💸 Minimum withdrawal</div>
+        <div class="stat-value">$0.05</div>
+      </div>
+
+      <div class="card">
+        <div class="stat-label">📢 Sponsored tasks</div>
+        <div class="stat-value">Coming soon</div>
+      </div>
+
+    </div>
+
+    <div class="section-heading">
+      <h2>Quick actions</h2>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="card-icon">🎁</div>
+
+        <div class="row-content">
+          <div class="card-title">Daily Bonus</div>
+          <div class="card-text">
+            Open the existing bot to claim your daily bonus.
+          </div>
+
+          <button class="button secondary" type="button"
+                  data-command="claimbonus">
+            Claim Daily Bonus
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="card-icon">👥</div>
+
+        <div class="row-content">
+          <div class="card-title">Invite friends</div>
+          <div class="card-text">
+            Find your referral link and learn about referral rewards.
+          </div>
+
+          <button class="button secondary" type="button"
+                  data-command="refer">
+            Open Referrals
+          </button>
+        </div>
+      </div>
+    </div>
+
   </section>
 
-  <section class="balance">
-    <div class="balance-label">AVAILABLE BALANCE</div>
-    <div class="balance-value">Check in Telegram</div>
+
+  <!-- EARN -->
+
+  <section class="page" id="page-earn">
+
+    <h1 class="page-title">🎬 Earn Rewards</h1>
+
+    <p class="page-description">
+      Explore supported earning opportunities.
+      Rewards will only be credited after the required
+      verification system is connected.
+    </p>
+
+    <div class="card">
+      <div class="card-icon">📺</div>
+
+      <div class="card-title">Monetag Advertisements</div>
+
+      <div class="card-text">
+        Monetag integration is planned for Rapid Ads.
+        Advertisements must be verified before a reward
+        can be credited to your account.
+      </div>
+
+      <span class="pill">Integration pending</span>
+
+      <button class="button" type="button"
+              data-notice="Monetag is not connected yet. No reward has been credited.">
+        Check Availability
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">📢</div>
+
+      <div class="card-title">Sponsored Tasks</div>
+
+      <div class="card-text">
+        Complete eligible promotional tasks funded by
+        advertisers when the marketplace becomes available.
+      </div>
+
+      <span class="pill blue">Coming soon</span>
+
+      <button class="button secondary" type="button"
+              data-go="tasks">
+        Explore Sponsored Tasks
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">🎁</div>
+
+      <div class="card-title">Daily Bonus</div>
+
+      <div class="card-text">
+        Claim your existing daily bonus through the
+        Rapid Ads Telegram bot.
+      </div>
+
+      <button class="button secondary" type="button"
+              data-command="claimbonus">
+        Open Daily Bonus
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-icon">👥</div>
+
+      <div class="card-title">Refer & Earn</div>
+
+      <div class="card-text">
+        Invite friends using your official referral link.
+      </div>
+
+      <button class="button secondary" type="button"
+              data-command="refer">
+        Open Referrals
+      </button>
+    </div>
 
     <div class="notice">
-      💡 Your official balance is maintained by the Rapid Ads bot.
-      Use the buttons below to access your earning features.
-    </div>
-  </section>
-
-  <section class="stats">
-
-    <div class="stat">
-      <div class="stat-title">🎁 Daily Bonus</div>
-      <div class="stat-value">$0.01</div>
-    </div>
-
-    <div class="stat">
-      <div class="stat-title">💵 Minimum Withdraw</div>
-      <div class="stat-value">$0.05</div>
+      ⚠️ This screen does not yet verify ad views or
+      award new earnings. Never treat an ad closing as
+      proof that a reward is payable.
     </div>
 
   </section>
 
-  <div class="section-title">🎯 Earn Rewards</div>
 
-  <section class="card">
+  <!-- SPONSORED TASKS -->
 
-    <div class="card-title">
-      📺 AdsGram Reward Advertisement
+  <section class="page" id="page-tasks">
+
+    <h1 class="page-title">📢 Sponsored Tasks</h1>
+
+    <p class="page-description">
+      Find promotional opportunities funded by advertisers.
+    </p>
+
+    <div class="card">
+      <div class="empty-state">
+        <div class="big-icon">🧩</div>
+
+        <strong>No sponsored tasks available yet</strong>
+
+        <p>
+          Advertiser campaigns will appear here after the
+          marketplace, campaign funding and task verification
+          systems are connected.
+        </p>
+      </div>
     </div>
 
-    <div class="card-text">
-      Watch a rewarded advertisement to receive the configured Rapid Ads reward.
-      Watching the advertisement is optional and is not required to use the other
-      features of Rapid Ads.
+    <div class="card">
+      <div class="card-title">How it will work</div>
+
+      <div class="list-item">
+        <span>1. Discover a task</span>
+        <strong>Browse</strong>
+      </div>
+
+      <div class="list-item">
+        <span>2. Complete the requirements</span>
+        <strong>Participate</strong>
+      </div>
+
+      <div class="list-item">
+        <span>3. Submit for verification</span>
+        <strong>Verify</strong>
+      </div>
+
+      <div class="list-item">
+        <span>4. Receive an approved reward</span>
+        <strong>Earn</strong>
+      </div>
     </div>
 
-    <button id="watchAd">
-      ▶️ Watch AdsGram Advertisement
+    <div class="info-box">
+      Task rewards will depend on each campaign's funded
+      budget, stated requirements and successful verification.
+    </div>
+
+    <button class="button secondary" type="button"
+            data-go="advertise">
+      📣 I'm an Advertiser
     </button>
 
-    <div id="status" aria-live="polite">
-      AdsGram is ready when the service is active.
+  </section>
+
+
+  <!-- ADVERTISE -->
+
+  <section class="page" id="page-advertise">
+
+    <h1 class="page-title">🛍️ Advertise</h1>
+
+    <p class="page-description">
+      Prepare a promotional campaign for review by Rapid Ads.
+    </p>
+
+    <div class="card">
+      <div class="card-icon">📣</div>
+
+      <div class="card-title">Promote your channel or link</div>
+
+      <div class="card-text">
+        The planned marketplace will allow advertisers to
+        submit campaigns, define task requirements and set
+        a budget for eligible promotional activity.
+      </div>
+
+      <span class="pill">Marketplace in development</span>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Campaign draft</div>
+
+      <div class="card-text">
+        You can prepare your campaign details below.
+        This form is a local preview only; it does not submit
+        a campaign, charge money or publish an advertisement.
+      </div>
+
+      <form id="campaignForm">
+
+        <div class="field">
+          <label for="campaignTitle">Campaign name</label>
+
+          <input id="campaignTitle"
+                 name="campaignTitle"
+                 maxlength="80"
+                 required
+                 placeholder="e.g. My Telegram Channel">
+        </div>
+
+        <div class="field">
+          <label for="campaignType">Promotion type</label>
+
+          <select id="campaignType" name="campaignType" required>
+            <option value="Telegram channel">Telegram channel</option>
+            <option value="Telegram group">Telegram group</option>
+            <option value="Website">Website</option>
+            <option value="Other approved promotion">Other approved promotion</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="campaignUrl">Promotion link</label>
+
+          <input id="campaignUrl"
+                 name="campaignUrl"
+                 type="url"
+                 maxlength="500"
+                 required
+                 placeholder="https://t.me/yourchannel">
+        </div>
+
+        <div class="field">
+          <label for="campaignDescription">Campaign requirements</label>
+
+          <textarea id="campaignDescription"
+                    name="campaignDescription"
+                    maxlength="1000"
+                    required
+                    placeholder="Describe what participants should do."></textarea>
+        </div>
+
+        <button class="button" type="submit">
+          Preview Campaign
+        </button>
+
+      </form>
+
+      <div id="campaignPreview" aria-live="polite"></div>
+    </div>
+
+    <div class="notice">
+      Campaign submission, moderation, payment, refunds and
+      task verification are not active yet. Campaigns will
+      need approval before publication.
     </div>
 
   </section>
 
-  <section class="card">
 
-    <div class="card-title">
-      🎁 Daily Bonus
+  <!-- WALLET -->
+
+  <section class="page" id="page-wallet">
+
+    <h1 class="page-title">💰 Wallet</h1>
+
+    <p class="page-description">
+      Your official balance and withdrawal records remain
+      managed by the existing Rapid Ads bot until the
+      secure backend is connected.
+    </p>
+
+    <div class="hero">
+      <div class="eyebrow">Available balance</div>
+
+      <h1>Check in Telegram</h1>
+
+      <p>
+        Open your bot to view your actual balance.
+      </p>
     </div>
 
-    <div class="card-text">
-      Claim your daily Rapid Ads bonus from the bot.
+    <div class="card">
+      <div class="card-title">💸 Withdraw funds</div>
+
+      <div class="card-text">
+        Your existing bot handles withdrawal requests.
+        Check the minimum withdrawal and available methods there.
+      </div>
+
+      <button class="button" type="button"
+              data-command="requestwithdrawal">
+        Request Withdrawal
+      </button>
     </div>
 
-    <button class="secondary" id="bonusButton">
-      🎁 Claim Daily Bonus
-    </button>
+    <div class="card">
+      <div class="card-title">📜 Transaction history</div>
+
+      <div class="card-text">
+        Your transaction history is not yet connected
+        to this screen.
+      </div>
+
+      <button class="button secondary" type="button"
+              data-command="transactions">
+        Open Transactions in Bot
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Withdrawal methods</div>
+
+      <div class="list-item">
+        <span>USDT</span>
+        <strong>BEP20</strong>
+      </div>
+
+      <div class="list-item">
+        <span>Litecoin</span>
+        <strong>LTC</strong>
+      </div>
+
+      <div class="list-item">
+        <span>FaucetPay</span>
+        <strong>Existing bot option</strong>
+      </div>
+    </div>
+
+    <div class="notice">
+      Never share your wallet seed phrase, private keys
+      or account passwords to receive a Rapid Ads payout.
+    </div>
 
   </section>
 
-  <section class="card">
 
-    <div class="card-title">
-      👥 Refer & Earn
+  <!-- ACCOUNT -->
+
+  <section class="page" id="page-account">
+
+    <h1 class="page-title">👤 My Account</h1>
+
+    <p class="page-description">
+      Open the existing bot for your actual account information.
+    </p>
+
+    <div class="card">
+      <div class="card-icon">👤</div>
+
+      <div class="card-title">Account details</div>
+
+      <div class="card-text">
+        Telegram profile details, referral statistics and
+        earning records will be displayed here after secure
+        account integration.
+      </div>
+
+      <button class="button" type="button"
+              data-command="account">
+        Open Account in Telegram
+      </button>
     </div>
 
-    <div class="card-text">
-      Invite friends and receive referral rewards.
+    <div class="card">
+      <div class="card-icon">👥</div>
+
+      <div class="card-title">Refer & Earn</div>
+
+      <div class="card-text">
+        Invite friends using your existing referral system.
+      </div>
+
+      <button class="button secondary" type="button"
+              data-command="refer">
+        Open Referrals
+      </button>
     </div>
 
-    <button class="secondary" id="referButton">
-      👥 Open Referrals
-    </button>
+    <div class="card">
+      <div class="card-icon">ℹ️</div>
+
+      <div class="card-title">Help & Support</div>
+
+      <div class="card-text">
+        Get assistance with your Rapid Ads account.
+      </div>
+
+      <button class="button secondary" type="button"
+              data-command="help">
+        Open Help
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">About Rapid Ads</div>
+
+      <div class="list-item">
+        <span>Daily bonus</span>
+        <strong>$0.01</strong>
+      </div>
+
+      <div class="list-item">
+        <span>Minimum withdrawal</span>
+        <strong>$0.05</strong>
+      </div>
+
+      <div class="list-item">
+        <span>Reward verification</span>
+        <strong>Required</strong>
+      </div>
+    </div>
 
   </section>
 
-  <div class="section-title">💼 Your Account</div>
-
-  <div class="menu">
-
-    <button id="accountButton">
-      👤 Account
-    </button>
-
-    <button id="walletButton">
-      💳 Wallet
-    </button>
-
-    <button id="withdrawButton">
-      💰 Withdraw
-    </button>
-
-    <button id="helpButton">
-      ℹ️ Help
-    </button>
-
-  </div>
 
   <div class="footer">
     Rapid Ads • Earn responsibly
@@ -293,11 +988,65 @@
 
 </main>
 
-<script>
 
-  const tg =
-    window.Telegram &&
-    window.Telegram.WebApp;
+<!-- BOTTOM NAVIGATION -->
+
+<nav class="bottom-nav" aria-label="Main navigation">
+
+  <button class="nav-button active"
+          type="button"
+          data-go="home"
+          aria-current="page">
+    <span class="nav-icon">🏠</span>
+    <span>Home</span>
+  </button>
+
+  <button class="nav-button"
+          type="button"
+          data-go="earn">
+    <span class="nav-icon">🎬</span>
+    <span>Earn</span>
+  </button>
+
+  <button class="nav-button"
+          type="button"
+          data-go="tasks">
+    <span class="nav-icon">📢</span>
+    <span>Tasks</span>
+  </button>
+
+  <button class="nav-button"
+          type="button"
+          data-go="advertise">
+    <span class="nav-icon">🛍️</span>
+    <span>Advertise</span>
+  </button>
+
+  <button class="nav-button"
+          type="button"
+          data-go="wallet">
+    <span class="nav-icon">💰</span>
+    <span>Wallet</span>
+  </button>
+
+  <button class="nav-button"
+          type="button"
+          data-go="account">
+    <span class="nav-icon">👤</span>
+    <span>Account</span>
+  </button>
+
+</nav>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+
+<script>
+(function () {
+
+  "use strict";
+
+  const tg = window.Telegram && window.Telegram.WebApp;
 
   if (tg) {
     tg.ready();
@@ -306,13 +1055,28 @@
 
   const BOT_USERNAME = "rapidads_bot";
 
-  function openBot(command) {
+  const pages = document.querySelectorAll(".page");
+  const navButtons = document.querySelectorAll(".nav-button");
+  const toast = document.getElementById("toast");
 
-    const url =
-      "https://t.me/" +
-      BOT_USERNAME +
-      "?start=" +
-      encodeURIComponent(command);
+  let toastTimer = null;
+
+  function showNotice(text) {
+    toast.textContent = text;
+    toast.style.display = "block";
+
+    if (toastTimer) {
+      clearTimeout(toastTimer);
+    }
+
+    toastTimer = setTimeout(function () {
+      toast.style.display = "none";
+    }, 4500);
+  }
+
+  function openBot(parameter) {
+    const url = "https://t.me/" + BOT_USERNAME +
+      "?start=" + encodeURIComponent(parameter);
 
     if (
       tg &&
@@ -322,161 +1086,133 @@
     } else {
       window.location.href = url;
     }
-
   }
 
+  function navigate(pageName) {
+
+    const target = document.getElementById("page-" + pageName);
+
+    if (!target) {
+      showNotice("This section is unavailable.");
+      return;
+    }
+
+    pages.forEach(function (page) {
+      page.classList.toggle("active", page === target);
+    });
+
+    navButtons.forEach(function (button) {
+      const isActive = button.dataset.go === pageName;
+
+      button.classList.toggle("active", isActive);
+
+      if (isActive) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+
+    window.scrollTo({
+      top: 0,
+      behavior: "auto"
+    });
+  }
+
+  document.querySelectorAll("[data-go]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      navigate(button.dataset.go);
+    });
+  });
+
+  document.querySelectorAll("[data-command]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      openBot(button.dataset.command);
+    });
+  });
+
+  document.querySelectorAll("[data-notice]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      showNotice(button.dataset.notice);
+    });
+  });
+
   /*
-   * AdsGram
-   *
-   * Block ID:
-   * 51635
+   * Campaign form:
+   * This only previews the campaign locally.
+   * It does not publish a campaign or process payment.
    */
 
-  let AdController = null;
+  const campaignForm = document.getElementById("campaignForm");
+  const campaignPreview = document.getElementById("campaignPreview");
 
-  try {
+  campaignForm.addEventListener("submit", function (event) {
+
+    event.preventDefault();
+
+    const title = document.getElementById("campaignTitle").value.trim();
+    const type = document.getElementById("campaignType").value;
+    const link = document.getElementById("campaignUrl").value.trim();
+    const description = document.getElementById("campaignDescription").value.trim();
+
+    let parsedUrl;
+
+    try {
+      parsedUrl = new URL(link);
+    } catch (error) {
+      showNotice("Please enter a valid promotion link.");
+      return;
+    }
 
     if (
-      window.Adsgram &&
-      typeof window.Adsgram.init === "function"
+      parsedUrl.protocol !== "https:" &&
+      parsedUrl.protocol !== "http:"
     ) {
-
-      AdController =
-        window.Adsgram.init({
-          blockId: "51635"
-        });
-
+      showNotice("Please use a valid HTTP or HTTPS link.");
+      return;
     }
 
-  } catch (error) {
+    campaignPreview.replaceChildren();
 
-    AdController = null;
+    const previewCard = document.createElement("div");
+    previewCard.className = "info-box";
 
-  }
+    const heading = document.createElement("strong");
+    heading.textContent = "Campaign draft preview";
 
-  const watchButton =
-    document.getElementById("watchAd");
+    const titleLine = document.createElement("p");
+    titleLine.textContent = "Name: " + title;
 
-  const status =
-    document.getElementById("status");
+    const typeLine = document.createElement("p");
+    typeLine.textContent = "Type: " + type;
 
-  watchButton.addEventListener(
-    "click",
-    async function () {
+    const linkLine = document.createElement("p");
+    linkLine.textContent = "Link: " + link;
 
-      if (!AdController) {
+    const descriptionLine = document.createElement("p");
+    descriptionLine.textContent = "Requirements: " + description;
 
-        status.textContent =
-          "AdsGram is not currently active. Please try again later.";
+    const statusLine = document.createElement("p");
+    statusLine.textContent =
+      "Status: Draft only. Nothing has been submitted or charged.";
 
-        return;
-
-      }
-
-      watchButton.disabled = true;
-
-      status.textContent =
-        "⏳ Loading advertisement...";
-
-      try {
-
-        const result =
-          await AdController.show();
-
-        if (
-          result &&
-          result.done === true &&
-          result.error !== true
-        ) {
-
-          status.textContent =
-            "✅ Advertisement completed. Reward verification will be processed separately.";
-
-        } else {
-
-          status.textContent =
-            "Advertisement ended without a confirmed reward.";
-
-        }
-
-      } catch (error) {
-
-        status.textContent =
-          "❌ Advertisement could not be completed.";
-
-      } finally {
-
-        watchButton.disabled = false;
-
-      }
-
-    }
-  );
-
-
-  /*
-   * Existing Rapid Ads bot features
-   */
-
-  document
-    .getElementById("bonusButton")
-    .addEventListener(
-      "click",
-      function () {
-        openBot("claimbonus");
-      }
+    previewCard.append(
+      heading,
+      titleLine,
+      typeLine,
+      linkLine,
+      descriptionLine,
+      statusLine
     );
 
+    campaignPreview.appendChild(previewCard);
 
-  document
-    .getElementById("referButton")
-    .addEventListener(
-      "click",
-      function () {
-        openBot("refer");
-      }
+    showNotice(
+      "Draft preview created. The advertiser marketplace is not connected yet."
     );
+  });
 
-
-  document
-    .getElementById("accountButton")
-    .addEventListener(
-      "click",
-      function () {
-        openBot("account");
-      }
-    );
-
-
-  document
-    .getElementById("walletButton")
-    .addEventListener(
-      "click",
-      function () {
-        openBot("wallet");
-      }
-    );
-
-
-  document
-    .getElementById("withdrawButton")
-    .addEventListener(
-      "click",
-      function () {
-        openBot("requestwithdrawal");
-      }
-    );
-
-
-  document
-    .getElementById("helpButton")
-    .addEventListener(
-      "click",
-      function () {
-        openBot("help");
-      }
-    );
-
+})();
 </script>
 
 </body>
