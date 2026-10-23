@@ -446,7 +446,9 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
   <header class="topbar">
     <div class="brand">🚀 Rapid <span>Ads</span></div>
-    <div class="balance-chip">💰 Balance in Bot</div>
+    <div class="balance-chip" id="balanceChip">
+  💰 Balance: Loading...
+    </div>
   </header>
 
   <!-- EARN -->
@@ -457,10 +459,16 @@ button:disabled { opacity: .55; cursor: not-allowed; }
       <h1>Earn with Rapid Ads 🚀</h1>
       <p>Discover sponsored tasks and advertising opportunities in one place.</p>
       <button class="button secondary" style="margin-top:16px"
-              type="button" data-command="balance">
-        Check My Balance
-      </button>
-    </div>
+        type="button" id="refreshBalance">
+  💰 Check My Balance
+</button>
+
+<div id="balanceStatus"
+     role="status"
+     aria-live="polite"
+     style="margin-top:12px;font-size:13px;">
+  Your balance will appear here.
+</div>
 
     <div class="grid">
       <div class="stat">
@@ -804,7 +812,72 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
   const tg = window.Telegram && window.Telegram.WebApp;
   const BOT_USERNAME = "rapidads_bot";
+  // Rapid Ads balance API
+  const BALANCE_API =
+    "https://rapid-ads-api.godwinjohn451.workers.dev/balance";
 
+  const balanceChip = document.getElementById("balanceChip");
+  const balanceStatus = document.getElementById("balanceStatus");
+  const refreshBalanceButton = document.getElementById("refreshBalance");
+
+  async function refreshBalance() {
+    if (!tg || !tg.initData) {
+      balanceStatus.textContent =
+        "Please open Rapid Ads from its Telegram Mini App button.";
+      return;
+    }
+
+    refreshBalanceButton.disabled = true;
+    refreshBalanceButton.textContent = "Checking balance...";
+    balanceStatus.textContent = "Verifying your Telegram account...";
+
+    try {
+      const response = await fetch(BALANCE_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          initData: tg.initData
+        }),
+        cache: "no-store"
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.ok) {
+        throw new Error(
+          result.error || "Could not retrieve your balance."
+        );
+      }
+
+      if (
+        result.synced !== true ||
+        typeof result.balance !== "number"
+      ) {
+        balanceChip.textContent = "💰 Balance: Not synced";
+        balanceStatus.textContent =
+          "No saved balance was found. Open the bot and use /balance first.";
+        return;
+      }
+
+      const formattedBalance = "$" + result.balance.toFixed(2);
+
+      balanceChip.textContent = "💰 " + formattedBalance;
+      balanceStatus.textContent =
+        "Your latest saved balance: " + formattedBalance;
+
+    } catch (error) {
+      balanceStatus.textContent =
+        error.message ||
+        "Unable to retrieve your balance. Please try again.";
+    } finally {
+      refreshBalanceButton.disabled = false;
+      refreshBalanceButton.textContent = "💰 Check My Balance";
+    }
+  }
+
+  refreshBalanceButton.addEventListener("click", refreshBalance);
   if (tg) {
     tg.ready();
     tg.expand();
