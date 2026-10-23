@@ -574,9 +574,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
             <div class="meta-value">1 minute</div>
           </div>
         </div>
-        <button class="button" type="button"
-                data-notice="Monetag is not connected yet. No reward has been credited.">
-          Currently Unavailable
+        <button class="button" type="button" id="monetagWatchButton">
+  📺 Watch Ad
         </button>
       </div>
 
@@ -1057,6 +1056,47 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 
     showNotice("Draft preview created. The marketplace is not connected yet.");
   });
+  // Monetag rewarded advertisement
+  const monetagButton = document.getElementById("monetagWatchButton");
+
+  if (monetagButton) {
+    monetagButton.addEventListener("click", async function () {
+      if (typeof window.show_12109194 !== "function") {
+        showNotice(
+          "Monetag is still loading or no ad is available. Please try again."
+        );
+        return;
+      }
+
+      monetagButton.disabled = true;
+      monetagButton.textContent = "Loading advertisement...";
+
+      try {
+        const result = await window.show_12109194({
+          ymid: "ra_" + Date.now() + "_" +
+            Math.random().toString(36).slice(2, 10),
+          requestVar: "rapid_ads_watch"
+        });
+
+        if (result && result.reward_event_type === "valued") {
+          showNotice(
+            "Monetag confirmed a valued ad event. Reward crediting will be enabled after server-side verification is connected."
+          );
+        } else {
+          showNotice(
+            "The ad ended, but a qualifying reward was not confirmed. No balance was changed."
+          );
+        }
+      } catch (error) {
+        showNotice(
+          "The advertisement could not be verified or loaded. Please try again later."
+        );
+      } finally {
+        monetagButton.disabled = false;
+        monetagButton.textContent = "📺 Watch Ad";
+      }
+    });
+  }
 })();
 </script>
 </body>
