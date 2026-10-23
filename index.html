@@ -877,11 +877,36 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     }
   }
 
+  // Keep the manual balance button.
   refreshBalanceButton.addEventListener("click", refreshBalance);
+
+  // Initialize the Telegram Mini App.
   if (tg) {
     tg.ready();
     tg.expand();
   }
+
+  // Check the balance automatically when the Mini App opens.
+  refreshBalance();
+
+  // Refresh whenever the user returns to the Mini App.
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) {
+      refreshBalance();
+    }
+  });
+
+  // Refresh when Telegram reactivates the Mini App.
+  if (tg && typeof tg.onEvent === "function") {
+    tg.onEvent("activated", refreshBalance);
+  }
+
+  // Check for new balance updates every 15 seconds.
+  const balanceRefreshTimer = setInterval(function () {
+    if (!document.hidden) {
+      refreshBalance();
+    }
+  }, 15000);
 
   const pages = document.querySelectorAll(".page");
   const navButtons = document.querySelectorAll(".nav-button");
