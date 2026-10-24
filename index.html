@@ -1107,8 +1107,10 @@ if (monetagButton) {
 
       if (!registerResponse.ok || registerResult.ok !== true) {
   showNotice(
-    "We couldn't register the session: " +
+    "Registration error: " +
     (registerResult.error || "Unknown error") +
+    ". Details: " +
+    (registerResult.details || "No additional details returned") +
     ". No reward was credited."
   );
   return;
