@@ -1057,46 +1057,87 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     showNotice("Draft preview created. The marketplace is not connected yet.");
   });
   // Monetag rewarded advertisement
-  const monetagButton = document.getElementById("monetagWatchButton");
+const monetagButton = document.getElementById("monetagWatchButton");
 
-  if (monetagButton) {
-    monetagButton.addEventListener("click", async function () {
-      if (typeof window.show_12109194 !== "function") {
+const MONETAG_REGISTER_API =
+  "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-register";
+
+if (monetagButton) {
+  monetagButton.addEventListener("click", async function () {
+    if (!tg || !tg.initData) {
+      showNotice(
+        "Please open Rapid Ads from its Telegram Mini App button."
+      );
+      return;
+    }
+
+    if (typeof window.show_12109194 !== "function") {
+      showNotice(
+        "Monetag is still loading or no advertisement is available. Please try again."
+      );
+      return;
+    }
+
+    monetagButton.disabled = true;
+    monetagButton.textContent = "Registering advertisement...";
+
+    try {
+      const ymid =
+        "ra_" +
+        Date.now() +
+        "_" +
+        Math.random().toString(36).slice(2, 10);
+
+      const registerResponse = await fetch(
+        MONETAG_REGISTER_API,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            initData: tg.initData,
+            ymid: ymid
+          }),
+          cache: "no-store"
+        }
+      );
+
+      const registerResult = await registerResponse.json();
+
+      if (!registerResponse.ok || registerResult.ok !== true) {
         showNotice(
-          "Monetag is still loading or no ad is available. Please try again."
+          "We couldn't register your advertisement session. No reward was credited. Please try again."
         );
         return;
       }
 
-      monetagButton.disabled = true;
       monetagButton.textContent = "Loading advertisement...";
 
-      try {
-        const result = await window.show_12109194({
-          ymid: "ra_" + Date.now() + "_" +
-            Math.random().toString(36).slice(2, 10),
-          requestVar: "rapid_ads_watch"
-        });
+      const result = await window.show_12109194({
+        ymid: ymid,
+        requestVar: "rapid_ads_watch"
+      });
 
-        if (result && result.reward_event_type === "valued") {
-          showNotice(
-            "Monetag confirmed a valued ad event. Reward crediting will be enabled after server-side verification is connected."
-          );
-        } else {
-          showNotice(
-            "The ad ended, but a qualifying reward was not confirmed. No balance was changed."
-          );
-        }
-      } catch (error) {
+      if (result && result.reward_event_type === "valued") {
         showNotice(
-          "The advertisement could not be verified or loaded. Please try again later."
+          "Monetag reported a valued ad event. Reward crediting is not enabled yet."
         );
-      } finally {
-        monetagButton.disabled = false;
-        monetagButton.textContent = "📺 Watch Ad";
+      } else {
+        showNotice(
+          "The advertisement ended, but a qualifying reward was not confirmed. No balance was changed."
+        );
       }
-    });
-  }
+    } catch (error) {
+      showNotice(
+        "The advertisement could not be registered or loaded. Please try again later."
+      );
+    } finally {
+      monetagButton.disabled = false;
+      monetagButton.textContent = "📺 Watch Ad";
+    }
+  });
+      }
 })();
 </script>
 </body>
