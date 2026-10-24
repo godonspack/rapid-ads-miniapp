@@ -1106,10 +1106,12 @@ if (monetagButton) {
       const registerResult = await registerResponse.json();
 
       if (!registerResponse.ok || registerResult.ok !== true) {
-        showNotice(
-          "We couldn't register your advertisement session. No reward was credited. Please try again."
-        );
-        return;
+  showNotice(
+    "We couldn't register the session: " +
+    (registerResult.error || "Unknown error") +
+    ". No reward was credited."
+  );
+  return;
       }
 
       monetagButton.textContent = "Loading advertisement...";
