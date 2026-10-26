@@ -819,68 +819,122 @@ button:disabled { opacity: .55; cursor: not-allowed; }
   const tg = window.Telegram && window.Telegram.WebApp;
   const BOT_USERNAME = "rapidads_bot";
   // Rapid Ads balance API
-  const BALANCE_API =
-    "https://rapid-ads-api.godwinjohn451.workers.dev/balance";
+  const BALANCE_REQUEST_API =
+  "https://rapid-ads-api.godwinjohn451.workers.dev/balance-request";
+
+const BALANCE_RESULT_API =
+  "https://rapid-ads-api.godwinjohn451.workers.dev/balance-result";
 
   const balanceChip = document.getElementById("balanceChip");
   const balanceStatus = document.getElementById("balanceStatus");
   const refreshBalanceButton = document.getElementById("refreshBalance");
 
   async function refreshBalance() {
-    if (!tg || !tg.initData) {
-      balanceStatus.textContent =
-        "Please open Rapid Ads from its Telegram Mini App button.";
-      return;
+  if (!tg || !tg.initData) {
+    balanceStatus.textContent =
+      "Please open Rapid Ads from its Telegram Mini App button.";
+    return;
+  }
+
+  if (refreshBalanceButton.disabled) {
+    return;
+  }
+
+  refreshBalanceButton.disabled = true;
+  refreshBalanceButton.textContent = "Checking live balance...";
+  balanceStatus.textContent =
+    "Requesting your latest balance from Rapid Ads...";
+
+  try {
+    // Step 1: Ask Cloudflare to request the balance from TBC.
+    const requestResponse = await fetch(BALANCE_REQUEST_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        initData: tg.initData
+      }),
+      cache: "no-store"
+    });
+
+    const requestResult = await requestResponse.json();
+
+    if (!requestResponse.ok || !requestResult.ok) {
+      throw new Error(
+        requestResult.error || "Could not request your live balance."
+      );
     }
 
-    refreshBalanceButton.disabled = true;
-    refreshBalanceButton.textContent = "Checking balance...";
-    balanceStatus.textContent = "Verifying your Telegram account...";
+    const requestId = requestResult.request_id;
 
-    try {
-      const response = await fetch(BALANCE_API, {
+    if (typeof requestId !== "string" || !requestId) {
+      throw new Error("The balance request ID was missing.");
+    }
+
+    balanceStatus.textContent =
+      "Your balance request was sent. Waiting for confirmation...";
+
+    // Step 2: Poll Cloudflare for the matching TBC response.
+    const deadline = Date.now() + 25000;
+
+    while (Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      const resultResponse = await fetch(BALANCE_RESULT_API, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          initData: tg.initData
+          initData: tg.initData,
+          request_id: requestId
         }),
         cache: "no-store"
       });
 
-      const result = await response.json();
+      const result = await resultResponse.json();
 
-      if (!response.ok || !result.ok) {
+      if (!resultResponse.ok || !result.ok) {
         throw new Error(
-          result.error || "Could not retrieve your balance."
+          result.error || "Could not retrieve the balance result."
         );
       }
 
-      if (
-        result.synced !== true ||
-        typeof result.balance !== "number"
-      ) {
-        balanceChip.textContent = "💰 Balance: Not synced";
+      if (result.ready === true) {
+        if (
+          typeof result.balance !== "number" ||
+          !Number.isFinite(result.balance) ||
+          result.balance < 0
+        ) {
+          throw new Error("The returned balance was invalid.");
+        }
+
+        const formattedBalance = "$" + result.balance.toFixed(2);
+
+        balanceChip.textContent = "💰 " + formattedBalance;
         balanceStatus.textContent =
-          "No saved balance was found. Open the bot and use /balance first.";
+          "Live balance received from Telebot Creator.";
+
         return;
       }
 
-      const formattedBalance = "$" + result.balance.toFixed(2);
-
-      balanceChip.textContent = "💰 " + formattedBalance;
       balanceStatus.textContent =
-        "Your latest saved balance: " + formattedBalance;
-
-    } catch (error) {
-      balanceStatus.textContent =
-        error.message ||
-        "Unable to retrieve your balance. Please try again.";
-    } finally {
-      refreshBalanceButton.disabled = false;
-      refreshBalanceButton.textContent = "💰 Check My Balance";
+        "Waiting for Telebot Creator to return your balance...";
     }
+
+    throw new Error(
+      "Your balance response is taking longer than expected. Please try again."
+    );
+
+  } catch (error) {
+    balanceStatus.textContent =
+      error.message ||
+      "Unable to retrieve your live balance. Please try again.";
+  } finally {
+    refreshBalanceButton.disabled = false;
+    refreshBalanceButton.textContent = "💰 Check My Balance";
+  }
   }
 
   // Keep the manual balance button.
@@ -891,28 +945,6 @@ button:disabled { opacity: .55; cursor: not-allowed; }
     tg.ready();
     tg.expand();
   }
-
-  // Check the balance automatically when the Mini App opens.
-  refreshBalance();
-
-  // Refresh whenever the user returns to the Mini App.
-  document.addEventListener("visibilitychange", function () {
-    if (!document.hidden) {
-      refreshBalance();
-    }
-  });
-
-  // Refresh when Telegram reactivates the Mini App.
-  if (tg && typeof tg.onEvent === "function") {
-    tg.onEvent("activated", refreshBalance);
-  }
-
-  // Check for new balance updates every 15 seconds.
-  const balanceRefreshTimer = setInterval(function () {
-    if (!document.hidden) {
-      refreshBalance();
-    }
-  }, 15000);
 
   const pages = document.querySelectorAll(".page");
   const navButtons = document.querySelectorAll(".nav-button");
