@@ -1175,6 +1175,66 @@ if (monetagButton) {
     }
   });
       }
+  // Monetag Watch Ads integration — test mode only.
+  const monetagWatchButton =
+    document.getElementById("monetagWatchButton");
+
+  if (monetagWatchButton) {
+    monetagWatchButton.addEventListener("click", async function () {
+      if (typeof window.show_12109194 !== "function") {
+        showNotice(
+          "Monetag is still loading. Please try again shortly."
+        );
+        return;
+      }
+
+      monetagWatchButton.disabled = true;
+      monetagWatchButton.textContent = "Loading Monetag ad...";
+
+      try {
+        const ymid = (
+          window.crypto &&
+          typeof window.crypto.randomUUID === "function"
+        )
+          ? window.crypto.randomUUID()
+          : "ra-" + Date.now() + "-" +
+            Math.random().toString(36).slice(2, 12);
+
+        const result = await window.show_12109194({
+          type: "end",
+          ymid: ymid,
+          requestVar: "monetag_watch"
+        });
+
+        if (result && result.reward_event_type === "valued") {
+          showNotice(
+            "Monetag confirmed a valued ad event. " +
+            "No reward has been credited yet."
+          );
+        } else if (
+          result &&
+          result.reward_event_type === "non_valued"
+        ) {
+          showNotice(
+            "Monetag reported a non-valued event. No reward credited."
+          );
+        } else {
+          showNotice(
+            "The ad finished, but no valued event was confirmed. " +
+            "No reward credited."
+          );
+        }
+      } catch (error) {
+        showNotice(
+          "Monetag could not confirm this ad event. " +
+          "Please try again later."
+        );
+      } finally {
+        monetagWatchButton.disabled = false;
+        monetagWatchButton.textContent = "📺 Watch Ad";
+      }
+    });
+  }
 })();
 </script>
 </body>
