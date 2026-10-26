@@ -1175,66 +1175,100 @@ if (monetagButton) {
     }
   });
       }
-  // Monetag Watch Ads integration — test mode only.
-  const monetagWatchButton =
-    document.getElementById("monetagWatchButton");
+  // Monetag Watch Ads integration — verification test only.
+const monetagWatchButton =
+document.getElementById("monetagWatchButton");
 
-  if (monetagWatchButton) {
-    monetagWatchButton.addEventListener("click", async function () {
-      if (typeof window.show_12109194 !== "function") {
-        showNotice(
-          "Monetag is still loading. Please try again shortly."
-        );
-        return;
-      }
+const MONETAG_REGISTER_API =
+"https://rapid-ads-api.godwinjohn451.workers.dev/monetag-register";
 
-      monetagWatchButton.disabled = true;
-      monetagWatchButton.textContent = "Loading Monetag ad...";
+if (monetagWatchButton) {
+monetagWatchButton.addEventListener("click", async function () {
+if (!tg || !tg.initData) {
+showNotice("Please open Rapid Ads inside Telegram.");
+return;
+}
 
-      try {
-        const ymid = (
-          window.crypto &&
-          typeof window.crypto.randomUUID === "function"
-        )
-          ? window.crypto.randomUUID()
-          : "ra-" + Date.now() + "-" +
-            Math.random().toString(36).slice(2, 12);
-
-        const result = await window.show_12109194({
-          type: "end",
-          ymid: ymid,
-          requestVar: "monetag_watch"
-        });
-
-        if (result && result.reward_event_type === "valued") {
-          showNotice(
-            "Monetag confirmed a valued ad event. " +
-            "No reward has been credited yet."
-          );
-        } else if (
-          result &&
-          result.reward_event_type === "non_valued"
-        ) {
-          showNotice(
-            "Monetag reported a non-valued event. No reward credited."
-          );
-        } else {
-          showNotice(
-            "The ad finished, but no valued event was confirmed. " +
-            "No reward credited."
-          );
-        }
-      } catch (error) {
-        showNotice(
-          "Monetag could not confirm this ad event. " +
-          "Please try again later."
-        );
-      } finally {
-        monetagWatchButton.disabled = false;
-        monetagWatchButton.textContent = "📺 Watch Ad";
-      }
-    });
+  if (typeof window.show_12109194 !== "function") {
+    showNotice("Monetag is still loading. Please try again.");
+    return;
   }
+
+  monetagWatchButton.disabled = true;
+  monetagWatchButton.textContent = "Preparing Monetag ad...";
+
+  try {
+    const ymid = (
+      window.crypto &&
+      typeof window.crypto.randomUUID === "function"
+    )
+      ? window.crypto.randomUUID()
+      : "ra-" + Date.now() + "-" +
+        Math.random().toString(36).slice(2, 12);
+
+    // Register the session with Cloudflare before opening the ad.
+    const registerResponse = await fetch(
+      MONETAG_REGISTER_API,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          initData: tg.initData,
+          ymid: ymid
+        }),
+        cache: "no-store"
+      }
+    );
+
+    const registration = await registerResponse.json();
+
+    if (!registerResponse.ok || !registration.ok) {
+      throw new Error(
+        registration.error ||
+        "Could not register the advertisement session."
+      );
+    }
+
+    monetagWatchButton.textContent = "Opening Monetag ad...";
+
+    const result = await window.show_12109194({
+      type: "end",
+      ymid: ymid,
+      requestVar: "rapid_ads_watch"
+    });
+
+    if (result && result.reward_event_type === "valued") {
+      showNotice(
+        "Monetag reported a valued event. " +
+        "Waiting for server-side verification. No reward credited."
+      );
+    } else if (
+      result &&
+      result.reward_event_type === "non_valued"
+    ) {
+      showNotice(
+        "Monetag reported a non-valued event. No reward credited."
+      );
+    } else {
+      showNotice(
+        "The ad ended, but no valued event was confirmed. " +
+        "No reward credited."
+      );
+    }
+  } catch (error) {
+    showNotice(
+      error.message ||
+      "Monetag could not complete the advertisement test."
+    );
+  } finally {
+    monetagWatchButton.disabled = false;
+    monetagWatchButton.textContent = "📺 Watch Ad";
+  }
+});
+
+}
 })();
 </script>
 </body>
