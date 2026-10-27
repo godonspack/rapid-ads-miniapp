@@ -1094,34 +1094,41 @@ const monetagButton = document.getElementById("monetagWatchButton");
 
 const MONETAG_REGISTER_API =
   "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-register";
+
 const MONETAG_COOLDOWN_API =
   "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-cooldown-check";
+
 if (monetagButton) {
   monetagButton.addEventListener("click", async function () {
-    if (!tg || !tg.initData) {
+    if (!tg || !tg.initData || !tg.initDataUnsafe?.user?.id) {
       showNotice(
         "Please open Rapid Ads from its Telegram Mini App button."
       );
       return;
     }
-// Check the user's Monetag cooldown before opening an ad.
+
+    if (typeof window.show_12109194 !== "function") {
+      showNotice(
+        "Monetag is still loading or no advertisement is available. Please try again."
+      );
+      return;
+    }
+
     monetagButton.disabled = true;
     monetagButton.textContent = "Checking cooldown...";
 
     try {
-      const cooldownResponse = await fetch(
-        MONETAG_COOLDOWN_API,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            user_id: String(tg.initDataUnsafe?.user?.id || "")
-          }),
-          cache: "no-store"
-        }
-      );
+      // Step 1: Check cooldown before registering or opening an ad.
+      const cooldownResponse = await fetch(MONETAG_COOLDOWN_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          user_id: String(tg.initDataUnsafe.user.id)
+        }),
+        cache: "no-store"
+      });
 
       const cooldownResult = await cooldownResponse.json();
       const cooldown = cooldownResult.result;
@@ -1139,66 +1146,45 @@ if (monetagButton) {
         showNotice(
           Number.isFinite(remaining) && remaining > 0
             ? "Please wait " + remaining +
-              " seconds before watching another Monetag ad. No reward was credited."
-            : "We couldn't verify your Monetag cooldown. Please try again. No reward was credited."
+              " seconds before trying again. No reward was credited."
+            : "We couldn't verify your cooldown. Please try again later. No reward was credited."
         );
-
         return;
       }
-    } catch (error) {
-      showNotice(
-        "We couldn't check your Monetag cooldown. Please try again. No reward was credited."
-      );
-      return;
-    } finally {
-      monetagButton.disabled = false;
-      monetagButton.textContent = "📺 Watch Ad";
-  }
-    if (typeof window.show_12109194 !== "function") {
-      showNotice(
-        "Monetag is still loading or no advertisement is available. Please try again."
-      );
-      return;
-    }
 
-    monetagButton.disabled = true;
-    monetagButton.textContent = "Registering advertisement...";
+      // Step 2: Register this ad session with the API.
+      monetagButton.textContent = "Registering advertisement...";
 
-    try {
       const ymid =
         "ra_" +
         Date.now() +
         "_" +
         Math.random().toString(36).slice(2, 10);
 
-      const registerResponse = await fetch(
-        MONETAG_REGISTER_API,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            initData: tg.initData,
-            ymid: ymid
-          }),
-          cache: "no-store"
-        }
-      );
+      const registerResponse = await fetch(MONETAG_REGISTER_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          initData: tg.initData,
+          ymid: ymid
+        }),
+        cache: "no-store"
+      });
 
       const registerResult = await registerResponse.json();
 
       if (!registerResponse.ok || registerResult.ok !== true) {
-  showNotice(
-    "Registration error: " +
-    (registerResult.error || "Unknown error") +
-    ". Details: " +
-    (registerResult.details || "No additional details returned") +
-    ". No reward was credited."
-  );
-  return;
+        showNotice(
+          "Registration error: " +
+          (registerResult.error || "Unknown error") +
+          ". No reward was credited."
+        );
+        return;
       }
 
+      // Step 3: Open the advertisement.
       monetagButton.textContent = "Loading advertisement...";
 
       const result = await window.show_12109194({
@@ -1216,15 +1202,16 @@ if (monetagButton) {
         );
       }
     } catch (error) {
+      console.error("Monetag watch error:", error);
       showNotice(
-        "The advertisement could not be registered or loaded. Please try again later."
+        "The advertisement or cooldown check failed. Please try again later. No reward was credited."
       );
     } finally {
       monetagButton.disabled = false;
       monetagButton.textContent = "📺 Watch Ad";
     }
   });
-  }
+    }
 })();
 </script>
 </body>
