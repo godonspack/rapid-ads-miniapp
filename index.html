@@ -1094,7 +1094,8 @@ const monetagButton = document.getElementById("monetagWatchButton");
 
 const MONETAG_REGISTER_API =
   "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-register";
-
+const MONETAG_COOLDOWN_API =
+  "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-cooldown-check";
 if (monetagButton) {
   monetagButton.addEventListener("click", async function () {
     if (!tg || !tg.initData) {
