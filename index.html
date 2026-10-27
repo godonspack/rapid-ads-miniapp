@@ -1096,7 +1096,7 @@ const MONETAG_REGISTER_API =
   "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-register";
 
 const MONETAG_COOLDOWN_API =
-  "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-cooldown-check";
+  "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-cooldown-start";
 
 if (monetagButton) {
   monetagButton.addEventListener("click", async function () {
@@ -1120,15 +1120,15 @@ if (monetagButton) {
     try {
       // Step 1: Check cooldown before registering or opening an ad.
       const cooldownResponse = await fetch(MONETAG_COOLDOWN_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_id: String(tg.initDataUnsafe.user.id)
-        }),
-        cache: "no-store"
-      });
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    initData: tg.initData
+  }),
+  cache: "no-store"
+});
 
       const cooldownResult = await cooldownResponse.json();
       const cooldown = cooldownResult.result;
