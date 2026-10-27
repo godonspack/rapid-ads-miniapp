@@ -1104,7 +1104,56 @@ if (monetagButton) {
       );
       return;
     }
+// Check the user's Monetag cooldown before opening an ad.
+    monetagButton.disabled = true;
+    monetagButton.textContent = "Checking cooldown...";
 
+    try {
+      const cooldownResponse = await fetch(
+        MONETAG_COOLDOWN_API,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            user_id: String(tg.initDataUnsafe?.user?.id || "")
+          }),
+          cache: "no-store"
+        }
+      );
+
+      const cooldownResult = await cooldownResponse.json();
+      const cooldown = cooldownResult.result;
+
+      if (
+        !cooldownResponse.ok ||
+        cooldownResult.ok !== true ||
+        !cooldown ||
+        cooldown.can_watch !== true
+      ) {
+        const remaining = Number(
+          cooldown && cooldown.remaining_seconds
+        );
+
+        showNotice(
+          Number.isFinite(remaining) && remaining > 0
+            ? "Please wait " + remaining +
+              " seconds before watching another Monetag ad. No reward was credited."
+            : "We couldn't verify your Monetag cooldown. Please try again. No reward was credited."
+        );
+
+        return;
+      }
+    } catch (error) {
+      showNotice(
+        "We couldn't check your Monetag cooldown. Please try again. No reward was credited."
+      );
+      return;
+    } finally {
+      monetagButton.disabled = false;
+      monetagButton.textContent = "📺 Watch Ad";
+  }
     if (typeof window.show_12109194 !== "function") {
       showNotice(
         "Monetag is still loading or no advertisement is available. Please try again."
