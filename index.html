@@ -1261,10 +1261,11 @@ if (monetagButton) {
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-          initData: tg.initData,
-          ymid: ymid
-        }),
+      body: JSON.stringify({
+  initData: tg.initData,
+  ymid: ymid,
+  reservation_token: reservationToken
+}),
         cache: "no-store"
       });
 
