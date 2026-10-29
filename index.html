@@ -1340,19 +1340,9 @@ if (monetagButton) {
       await refreshMonetagCooldown();
     } finally {
       monetagBusy = false;
-
-      // Don't overwrite an active countdown.
-      if (
-        monetagButton &&
-        !monetagCountdownTimer &&
-        monetagButton.textContent !== "Unable to check cooldown"
-      ) {
-        monetagButton.disabled = false;
-        monetagButton.textContent = "📺 Watch Ad";
       }
-    }
   });
-        }
+ }
 })();
 </script>
 </body>
