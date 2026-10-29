@@ -910,7 +910,7 @@ const BALANCE_RESULT_API =
           throw new Error("The returned balance was invalid.");
         }
 
-        const formattedBalance = "$" + result.balance.toFixed(2);
+        const formattedBalance = "$" + result.balance.toFixed(3);
 
         balanceChip.textContent = "💰 " + formattedBalance;
         balanceStatus.textContent =
