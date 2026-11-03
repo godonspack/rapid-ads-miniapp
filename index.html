@@ -536,6 +536,8 @@ async function monetagApiRequest(action, extra = {}) {
 }
 
 /* REFRESH COOLDOWN */
+let monetagTimerInterval = null;
+
 async function refreshMonetagCooldown() {
   try {
     if (!tg.initData) {
@@ -547,30 +549,55 @@ async function refreshMonetagCooldown() {
 
     const result = await monetagApiRequest("check_cooldown");
 
-    const remaining = Number(result.remaining_seconds || 0);
+    let remaining = Math.max(
+      0,
+      Number(result.remaining_seconds || 0)
+    );
+
+    if (monetagTimerInterval) {
+      clearInterval(monetagTimerInterval);
+      monetagTimerInterval = null;
+    }
+
+    function updateCountdown() {
+      if (remaining > 0) {
+        monetagButton.disabled = true;
+
+        monetagButton.textContent =
+          "PLEASE WAIT " + remaining + "s";
+
+        monetagStatus.textContent =
+          "Next advertisement available in " +
+          remaining + " seconds.";
+
+        remaining--;
+      } else {
+        clearInterval(monetagTimerInterval);
+        monetagTimerInterval = null;
+
+        monetagButton.disabled = false;
+        monetagButton.textContent =
+          "▶ WATCH MONETAG AD";
+
+        monetagStatus.textContent =
+          "Your next advertisement is ready!";
+      }
+    }
+
+    updateCountdown();
 
     if (remaining > 0) {
-      monetagButton.disabled = true;
-
-      monetagStatus.textContent =
-        "Next ad available in " + remaining + " seconds.";
-
-      monetagButton.textContent =
-        "PLEASE WAIT " + remaining + "s";
-    } else {
-      monetagButton.disabled = false;
-
-      monetagStatus.textContent =
-        "You can watch an available advertisement.";
-
-      monetagButton.textContent =
-        "▶ WATCH MONETAG AD";
+      monetagTimerInterval = setInterval(
+        updateCountdown,
+        1000
+      );
     }
 
   } catch (error) {
     monetagButton.disabled = true;
+
     monetagStatus.textContent =
-      "Unable to check ad availability. Please try again.";
+      "Unable to check cooldown. Please try again.";
   }
 }
 
