@@ -531,7 +531,8 @@ async function monetagApiRequest(action, extra = {}) {
     );
   }
 
-  return result;
+  // FIX: Read the coordinator's nested response.
+  return result.result || result;
 }
 
 /* REFRESH COOLDOWN */
