@@ -1,1150 +1,515 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#10182f">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rapid Ads</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- EXISTING MONETAG SDK: PRESERVED -->
 <script
   src="https://libtl.com/sdk.js"
   data-zone="12109194"
   data-sdk="show_12109194">
 </script>
+
 <style>
 :root {
-  --bg: #f4f6fb;
-  --card: #ffffff;
-  --text: #172033;
-  --muted: #7a8498;
-  --blue: #246bfe;
-  --purple: #7048e8;
-  --border: #e9edf5;
-  --green: #159968;
+  --bg: #080d16;
+  --card: #111a28;
+  --card2: #162235;
+  --text: #f3f7ff;
+  --muted: #8c9bb0;
+  --green: #21e6a1;
+  --border: rgba(255,255,255,.08);
+  --gold: #f5c76b;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top right, #142d35 0, transparent 35%),
+    var(--bg);
   color: var(--text);
-  -webkit-tap-highlight-color: transparent;
-}
-
-button, input, select, textarea { font: inherit; }
-button { cursor: pointer; }
-button:disabled { opacity: .55; cursor: not-allowed; }
-
-.app {
-  max-width: 520px;
+  font-family: Arial, sans-serif;
   min-height: 100vh;
-  margin: auto;
-  padding: 16px 15px 100px;
 }
 
-.topbar {
+.container {
+  width: 100%;
+  max-width: 520px;
+  margin: auto;
+  padding: 18px 16px 40px;
+}
+
+.header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
+  align-items: center;
+  margin-bottom: 25px;
 }
 
 .brand {
-  font-size: 23px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 43px;
+  height: 43px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #21e6a1, #078f78);
+  color: #06130f;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.brand-name {
+  font-size: 19px;
   font-weight: 800;
-  letter-spacing: -.5px;
+  letter-spacing: .3px;
 }
 
-.brand span { color: var(--blue); }
-
-.balance-chip {
-  background: #e8efff;
-  color: #2458c7;
-  border-radius: 12px;
-  padding: 9px 11px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.page { display: none; }
-.page.active { display: block; }
-
-.page-title {
-  font-size: 25px;
-  font-weight: 800;
-  margin: 8px 0;
-}
-
-.page-description {
+.brand-sub {
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0 0 20px;
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.status {
+  background: rgba(33,230,161,.10);
+  border: 1px solid rgba(33,230,161,.22);
+  color: var(--green);
+  padding: 7px 10px;
+  border-radius: 20px;
+  font-size: 11px;
 }
 
 .hero {
-  background: linear-gradient(135deg, #1769ff, #7048e8);
+  background:
+    linear-gradient(135deg, rgba(33,230,161,.17), rgba(12,35,48,.8)),
+    var(--card);
+  border: 1px solid rgba(33,230,161,.18);
   border-radius: 22px;
-  padding: 22px;
-  color: white;
-  margin-bottom: 17px;
+  padding: 23px 20px;
+  margin-bottom: 22px;
+  position: relative;
+  overflow: hidden;
 }
 
-.eyebrow {
-  font-size: 11px;
+.hero:after {
+  content: "⚡";
+  position: absolute;
+  right: 15px;
+  top: 20px;
+  font-size: 55px;
+  opacity: .12;
+}
+
+.hero-label {
+  color: var(--green);
+  font-size: 12px;
   font-weight: bold;
-  letter-spacing: 1px;
   text-transform: uppercase;
-  opacity: .85;
+  letter-spacing: 1px;
 }
 
 .hero h1 {
   font-size: 25px;
-  line-height: 1.3;
-  margin: 10px 0;
+  line-height: 1.25;
+  margin: 12px 0 9px;
+  max-width: 290px;
 }
 
 .hero p {
+  color: #b2c3d0;
   font-size: 13px;
-  line-height: 1.7;
+  line-height: 1.6;
   margin: 0;
-  opacity: .94;
+  max-width: 300px;
 }
 
-.card {
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 25px 2px 13px;
+}
+
+.section-title h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.section-title span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.network-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 17px;
-  padding: 16px;
+  border-radius: 19px;
+  padding: 17px;
   margin-bottom: 13px;
 }
 
-.card-icon {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
+.network-top {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.network-icon {
+  width: 47px;
+  height: 47px;
   border-radius: 14px;
-  background: #edf2ff;
+  background: var(--card2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 23px;
-  margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
-.card-title {
-  font-size: 16px;
-  font-weight: 800;
-  margin-bottom: 8px;
+.network-info {
+  flex: 1;
 }
 
-.card-text {
+.network-info h3 {
+  font-size: 15px;
+  margin: 0 0 5px;
+}
+
+.network-info p {
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.65;
-  margin-bottom: 13px;
+  font-size: 11px;
+  margin: 0;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.badge {
+  color: var(--green);
+  background: rgba(33,230,161,.10);
+  border: 1px solid rgba(33,230,161,.18);
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.badge.pending {
+  color: var(--gold);
+  background: rgba(245,199,107,.08);
+  border-color: rgba(245,199,107,.18);
+}
+
+.network-details {
+  display: flex;
+  justify-content: space-between;
   gap: 10px;
+  border-top: 1px solid var(--border);
+  margin-top: 15px;
+  padding-top: 13px;
 }
 
-.stat {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  padding: 14px;
-}
-
-.stat-label {
-  font-size: 12px;
-  line-height: 1.5;
+.detail {
   color: var(--muted);
+  font-size: 10px;
 }
 
-.stat-value {
-  font-size: 19px;
-  font-weight: 800;
-  margin-top: 7px;
-}
-
-.button {
+.detail strong {
   display: block;
+  color: var(--text);
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.main-button {
   width: 100%;
   border: 0;
   border-radius: 12px;
-  padding: 13px;
-  background: var(--blue);
-  color: white;
+  padding: 14px;
+  margin-top: 15px;
+  background: linear-gradient(135deg, #21e6a1, #0ebc91);
+  color: #04140f;
+  font-weight: 800;
   font-size: 14px;
+  cursor: pointer;
+}
+
+.main-button:disabled {
+  background: #293747;
+  color: #8392a5;
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 13px;
+  margin-top: 12px;
   font-weight: bold;
-  text-align: center;
-}
-
-.button.secondary {
-  background: #edf2ff;
-  color: var(--blue);
-}
-
-.button.dark {
-  background: #182442;
-  color: white;
-}
-
-.button + .button { margin-top: 9px; }
-
-.pill {
-  display: inline-block;
-  border-radius: 30px;
-  background: #fff2d6;
-  color: #8a5b00;
-  padding: 6px 9px;
-  font-size: 11px;
-  font-weight: bold;
-  margin: 0 0 12px;
-}
-
-.pill.blue {
-  background: #e9efff;
-  color: #2458c7;
-}
-
-.pill.green {
-  background: #e0f6eb;
-  color: #087c4c;
-}
-
-.section-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 23px 0 12px;
-}
-
-.section-heading h2 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  background: #e9edf6;
-  border-radius: 14px;
-  padding: 5px;
-  margin: 18px 0;
-}
-
-.tab {
-  border: 0;
-  background: transparent;
-  color: #657087;
-  border-radius: 10px;
-  padding: 12px 5px;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.tab.active {
-  background: white;
-  color: var(--blue);
-  box-shadow: 0 2px 7px rgba(20, 40, 80, .08);
-}
-
-.earn-panel { display: none; }
-.earn-panel.active { display: block; }
-
-.network-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.network-head .card-icon {
-  flex-shrink: 0;
-  margin: 0;
-}
-
-.network-head .card-title { margin: 0; }
-
-.network-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 9px;
-  margin: 15px 0;
-}
-
-.meta-box {
-  background: #f5f7fc;
-  border-radius: 11px;
-  padding: 11px;
-}
-
-.meta-label {
-  color: #596579;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.meta-value {
-  color: #172033;
-  font-size: 17px;
-  font-weight: 800;
-  line-height: 1.4;
+  cursor: pointer;
 }
 
 .notice {
-  border: 1px solid #f2e5bd;
-  background: #fff9e9;
-  color: #775900;
+  background: rgba(245,199,107,.07);
+  border: 1px solid rgba(245,199,107,.15);
+  color: #d9c18d;
   border-radius: 13px;
   padding: 13px;
-  font-size: 12px;
-  line-height: 1.65;
-  margin: 13px 0;
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 15px;
 }
 
-.info-box {
-  background: #eef4ff;
-  color: #274e9e;
-  border-radius: 13px;
-  padding: 13px;
-  font-size: 12px;
-  line-height: 1.65;
-  margin: 12px 0;
-  overflow-wrap: anywhere;
-}
-
-.empty-state {
+.history-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 19px;
   text-align: center;
-  padding: 22px 10px;
+}
+
+.history-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.history-card h3 {
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.history-card p {
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.big-icon {
-  font-size: 36px;
-  margin-bottom: 10px;
-}
-
-.list-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-
-.list-item:last-child { border-bottom: 0; }
-
-.list-item span { color: var(--muted); }
-
-.list-item strong {
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.field { margin: 13px 0; }
-
-.field label {
-  display: block;
-  font-size: 13px;
-  font-weight: bold;
-  margin-bottom: 7px;
-}
-
-.field input,
-.field select,
-.field textarea {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid #dce2ee;
-  background: white;
-  color: var(--text);
-  border-radius: 11px;
-  padding: 13px;
-  font-size: 16px;
-}
-
-.field textarea {
-  min-height: 90px;
-  resize: vertical;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 7px 0 0;
 }
 
 .footer {
   text-align: center;
-  font-size: 11px;
-  color: #9ba4b5;
-  padding: 20px 0;
+  color: #607086;
+  font-size: 10px;
+  margin-top: 30px;
 }
 
-.bottom-nav {
+.toast {
   position: fixed;
-  z-index: 10;
+  bottom: 25px;
   left: 50%;
-  bottom: 0;
   transform: translateX(-50%);
-  width: 100%;
-  max-width: 520px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-  background: white;
-  border-top: 1px solid var(--border);
-}
-
-.nav-button {
-  border: 0;
-  border-radius: 13px;
-  background: transparent;
-  color: #929bad;
-  min-height: 54px;
-  padding: 6px;
-  font-size: 13px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.nav-button.active {
-  color: var(--blue);
-  background: #edf2ff;
-}
-
-.nav-icon { font-size: 21px; }
-
-#toast {
-  display: none;
-  position: fixed;
-  z-index: 20;
-  left: 15px;
-  right: 15px;
-  bottom: 88px;
-  max-width: 490px;
-  margin: auto;
-  border-radius: 13px;
-  padding: 14px;
-  background: #172033;
+  background: #1d2a39;
+  border: 1px solid var(--border);
   color: white;
-  font-size: 13px;
-  line-height: 1.5;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 12px;
+  display: none;
+  z-index: 1000;
+  width: max-content;
+  max-width: 90%;
+  text-align: center;
 }
 
-@media (max-width: 360px) {
-  .app { padding-left: 11px; padding-right: 11px; }
-  .hero { padding: 18px; }
-  .stat-value { font-size: 17px; }
-  .nav-button { font-size: 12px; }
-}
 </style>
 </head>
 
 <body>
-<main class="app">
 
-  <header class="topbar">
-    <div class="brand">🚀 Rapid <span>Ads</span></div>
-    <div class="balance-chip" id="balanceChip">
-  💰 Balance: Loading...
+<div class="container">
+
+  <header class="header">
+    <div class="brand">
+      <div class="logo">R</div>
+      <div>
+        <div class="brand-name">RAPID ADS</div>
+        <div class="brand-sub">Your automated earning platform</div>
+      </div>
     </div>
+    <div class="status">● ONLINE</div>
   </header>
 
-  <!-- EARN -->
+  <section class="hero">
+    <div class="hero-label">Welcome to Rapid Ads</div>
+    <h1>Watch Ads.<br>Earn Rewards.</h1>
+    <p>
+      Earn through advertising networks.
+      Complete eligible ad views and receive rewards
+      when verified payout services are connected.
+    </p>
+  </section>
 
-  <section class="page active" id="page-earn">
-    <div class="hero">
-      <div class="eyebrow">Your earning space</div>
-      <h1>Earn with Rapid Ads 🚀</h1>
-      <p>Discover sponsored tasks and advertising opportunities in one place.</p>
-      <button class="button secondary" style="margin-top:16px"
-        type="button" id="refreshBalance">
-  💰 Check My Balance
-</button>
+  <div class="section-title">
+    <h2>Earn with Ads</h2>
+    <span>Available networks</span>
+  </div>
+
+  <!-- MONETAG -->
+  <section class="network-card">
+    <div class="network-top">
+      <div class="network-icon">📺</div>
+      <div class="network-info">
+        <h3>Monetag Ads</h3>
+        <p>Watch available Monetag advertisements</p>
+      </div>
+      <div class="badge">AVAILABLE</div>
     </div>
-<div id="balanceStatus"
-     role="status"
-     aria-live="polite"
-     style="margin-top:12px;font-size:13px;">
-  Your balance will appear here.
+
+    <div class="network-details">
+      <div class="detail">
+        Target reward
+        <strong>$0.0005</strong>
+      </div>
+      <div class="detail">
+        Cooldown
+        <strong>1 minute</strong>
+      </div>
+      <div class="detail">
+        Daily target
+        <strong>100 views</strong>
+      </div>
+    </div>
+
+    <button class="main-button" id="monetagWatchButton">
+      ▶ WATCH MONETAG AD
+    </button>
+
+    <div id="monetagStatus" class="detail" style="margin-top:12px;text-align:center;">
+      Checking ad availability...
+    </div>
+  </section>
+
+  <!-- TBCADS -->
+  <section class="network-card">
+    <div class="network-top">
+      <div class="network-icon">🎯</div>
+      <div class="network-info">
+        <h3>TBCAds</h3>
+        <p>Sponsored advertising tasks</p>
+      </div>
+      <div class="badge pending">COMING SOON</div>
+    </div>
+
+    <div class="network-details">
+      <div class="detail">
+        Reward
+        <strong>Not active</strong>
+      </div>
+      <div class="detail">
+        Daily target
+        <strong>100 views</strong>
+      </div>
+    </div>
+
+    <button class="main-button" disabled>
+      TBCADS INTEGRATION PENDING
+    </button>
+  </section>
+
+  <!-- FAUCETPAY ADS -->
+  <section class="network-card">
+    <div class="network-top">
+      <div class="network-icon">💰</div>
+      <div class="network-info">
+        <h3>FaucetPay Ads</h3>
+        <p>Advertising rewards and direct payouts</p>
+      </div>
+      <div class="badge pending">COMING SOON</div>
+    </div>
+
+    <div class="network-details">
+      <div class="detail">
+        Payout method
+        <strong>FaucetPay</strong>
+      </div>
+      <div class="detail">
+        Payment type
+        <strong>Direct payout</strong>
+      </div>
+    </div>
+
+    <button class="main-button" disabled>
+      FAUCETPAY INTEGRATION PENDING
+    </button>
+  </section>
+
+  <div class="notice">
+    <strong>Important:</strong> Rewards are only payable after the
+    advertising network confirms a valid event and the payout
+    connection is active. Opening or closing an advertisement
+    alone does not guarantee a reward.
+  </div>
+
+  <!-- PAYMENT HISTORY -->
+  <div class="section-title">
+    <h2>Payment History</h2>
+    <span>FaucetPay payments</span>
+  </div>
+
+  <section class="history-card">
+    <div class="history-icon">🧾</div>
+    <h3>Payment history will appear here</h3>
+    <p>
+      Your verified direct FaucetPay payments will be listed
+      here after the payout system is connected.
+    </p>
+  </section>
+
+  <div class="footer">
+    Rapid Ads • Earn responsibly
+  </div>
+
 </div>
 
-    <div class="grid">
-      <div class="stat">
-        <div class="stat-label">🎁 Daily bonus</div>
-        <div class="stat-value">$0.01</div>
-      </div>
-      <div class="stat">
-        <div class="stat-label">💸 Minimum withdrawal</div>
-        <div class="stat-value">$0.05</div>
-      </div>
-    </div>
-
-    <div class="tabs" role="tablist" aria-label="Earning categories">
-      <button class="tab active" type="button"
-              data-earn-tab="sponsored" role="tab"
-              aria-selected="true">
-        📋 Sponsored Tasks
-      </button>
-      <button class="tab" type="button"
-              data-earn-tab="watch" role="tab"
-              aria-selected="false">
-        📺 Watch Ads
-      </button>
-    </div>
-
-    <!-- SPONSORED TASKS TAB -->
-
-    <div class="earn-panel active" id="earn-sponsored">
-      <div class="section-heading">
-        <h2>Sponsored Tasks</h2>
-      </div>
-
-      <div class="card">
-        <div class="empty-state">
-          <div class="big-icon">🧩</div>
-          <strong>No sponsored tasks available yet</strong>
-          <p>
-            Approved campaigns will appear here when the
-            task marketplace and verification system are connected.
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">How tasks will work</div>
-        <div class="list-item">
-          <span>1. Choose an approved task</span>
-          <strong>Browse</strong>
-        </div>
-        <div class="list-item">
-          <span>2. Complete its requirements</span>
-          <strong>Participate</strong>
-        </div>
-        <div class="list-item">
-          <span>3. Submit for verification</span>
-          <strong>Verify</strong>
-        </div>
-        <div class="list-item">
-          <span>4. Receive an approved reward</span>
-          <strong>Earn</strong>
-        </div>
-      </div>
-
-      <button class="button" type="button" data-go="advertise">
-        📢 Advertise Your Project
-      </button>
-    </div>
-
-    <!-- WATCH ADS TAB -->
-
-    <div class="earn-panel" id="earn-watch">
-      <div class="section-heading">
-        <h2>Watch Ads</h2>
-      </div>
-
-      <p class="page-description">
-        Advertising rewards will be available only when each
-        network is connected and successful completion can be verified.
-      </p>
-
-      <div class="card">
-        <div class="network-head">
-          <div class="card-icon">📺</div>
-          <div>
-            <div class="card-title">Monetag Ads</div>
-            <span class="pill">Integration pending</span>
-          </div>
-        </div>
-        <div class="network-meta">
-          <div class="meta-box">
-            <div class="meta-label">Planned reward</div>
-            <div class="meta-value">$0.001</div>
-          </div>
-          <div class="meta-box">
-            <div class="meta-label">Planned cooldown</div>
-            <div class="meta-value">1 minute</div>
-          </div>
-        </div>
-        <button class="button" type="button" id="monetagWatchButton">
-  📺 Watch Ad
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="network-head">
-          <div class="card-icon">📣</div>
-          <div>
-            <div class="card-title">AdsGram Ads</div>
-            <span class="pill">Integration pending</span>
-          </div>
-        </div>
-        <div class="network-meta">
-          <div class="meta-box">
-            <div class="meta-label">Planned reward</div>
-            <div class="meta-value">$0.001</div>
-          </div>
-          <div class="meta-box">
-            <div class="meta-label">Planned cooldown</div>
-            <div class="meta-value">1 minute</div>
-          </div>
-        </div>
-        <button class="button" type="button"
-                data-notice="AdsGram reward verification is not active. No reward has been credited.">
-          Currently Unavailable
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="network-head">
-          <div class="card-icon">🌐</div>
-          <div>
-            <div class="card-title">RichAds</div>
-            <span class="pill">Coming later</span>
-          </div>
-        </div>
-        <div class="network-meta">
-          <div class="meta-box">
-            <div class="meta-label">Planned reward</div>
-            <div class="meta-value">$0.001</div>
-          </div>
-          <div class="meta-box">
-            <div class="meta-label">Planned cooldown</div>
-            <div class="meta-value">1 minute</div>
-          </div>
-        </div>
-        <button class="button secondary" type="button"
-                data-notice="RichAds has not been integrated yet.">
-          Coming Soon
-        </button>
-      </div>
-
-      <div class="card">
-        <div class="network-head">
-          <div class="card-icon">🔷</div>
-          <div>
-            <div class="card-title">Adexium</div>
-            <span class="pill">Coming later</span>
-          </div>
-        </div>
-        <div class="network-meta">
-          <div class="meta-box">
-            <div class="meta-label">Planned reward</div>
-            <div class="meta-value">$0.001</div>
-          </div>
-          <div class="meta-box">
-            <div class="meta-label">Planned cooldown</div>
-            <div class="meta-value">1 minute</div>
-          </div>
-        </div>
-        <button class="button secondary" type="button"
-                data-notice="Adexium has not been integrated yet.">
-          Coming Soon
-        </button>
-      </div>
-
-      <div class="notice">
-        ⚠️ These are planned reward settings, not active payouts.
-        The network integrations, server-side cooldowns and reward
-        verification must be implemented before earning begins.
-        Closing an ad alone is not proof of completion.
-      </div>
-    </div>
-
-    <!-- DAILY BONUS AND REFERRALS -->
-
-    <div class="section-heading">
-      <h2>More Ways to Earn</h2>
-    </div>
-
-    <div class="card">
-      <div class="card-icon">🎁</div>
-      <div class="card-title">Daily Bonus</div>
-      <div class="card-text">
-        Claim your daily bonus through the existing Rapid Ads bot.
-      </div>
-      <button class="button secondary" type="button"
-              data-command="claimbonus">
-        Open Daily Bonus
-      </button>
-    </div>
-
-    <div class="card">
-      <div class="card-icon">👥</div>
-      <div class="card-title">Refer & Earn</div>
-      <div class="card-text">
-        Invite friends using your existing referral system.
-      </div>
-      <button class="button secondary" type="button"
-              data-command="refer">
-        Open Referrals
-      </button>
-    </div>
-
-    <div class="card">
-      <div class="card-icon">💸</div>
-      <div class="card-title">Withdraw Earnings</div>
-      <div class="card-text">
-        Your existing bot remains responsible for your balance
-        and withdrawal requests.
-      </div>
-      <button class="button dark" type="button"
-              data-command="requestwithdrawal">
-        Open Withdrawal
-      </button>
-    </div>
-  </section>
-
-  <!-- ADVERTISE -->
-
-  <section class="page" id="page-advertise">
-    <h1 class="page-title">📢 Advertise</h1>
-    <p class="page-description">
-      Prepare a promotional campaign for review by Rapid Ads.
-    </p>
-
-    <div class="hero">
-      <div class="eyebrow">For advertisers</div>
-      <h1>Promote your project</h1>
-      <p>
-        Prepare campaigns for Telegram channels, groups,
-        websites and other approved promotions.
-      </p>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Campaign draft</div>
-      <div class="card-text">
-        Complete this form to preview your campaign.
-        It will not be submitted, charged or published.
-      </div>
-
-      <form id="campaignForm">
-        <div class="field">
-          <label for="campaignTitle">Campaign name</label>
-          <input id="campaignTitle" maxlength="80" required
-                 placeholder="e.g. My Telegram Channel">
-        </div>
-
-        <div class="field">
-          <label for="campaignType">Promotion type</label>
-          <select id="campaignType" required>
-            <option value="Telegram channel">Telegram channel</option>
-            <option value="Telegram group">Telegram group</option>
-            <option value="Social media">Social media</option>
-            <option value="Website">Website</option>
-            <option value="App or service">App or service</option>
-            <option value="Other approved promotion">Other approved promotion</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="campaignUrl">Promotion link</label>
-          <input id="campaignUrl" type="url" maxlength="500"
-                 required placeholder="https://t.me/yourchannel">
-        </div>
-
-        <div class="field">
-          <label for="campaignDescription">Task requirements</label>
-          <textarea id="campaignDescription" maxlength="1000"
-                    required
-                    placeholder="Explain what participants should do."></textarea>
-        </div>
-
-        <button class="button" type="submit">Preview Campaign</button>
-      </form>
-
-      <div id="campaignPreview" aria-live="polite"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Campaign process</div>
-      <div class="list-item">
-        <span>1. Prepare campaign</span>
-        <strong>Draft</strong>
-      </div>
-      <div class="list-item">
-        <span>2. Submit for review</span>
-        <strong>Planned</strong>
-      </div>
-      <div class="list-item">
-        <span>3. Admin approves campaign</span>
-        <strong>Planned</strong>
-      </div>
-      <div class="list-item">
-        <span>4. Track results</span>
-        <strong>Planned</strong>
-      </div>
-    </div>
-
-    <div class="notice">
-      The advertiser marketplace is not connected yet.
-      Campaign submission, payment, budgets, refunds, moderation
-      and reporting still need a secure backend.
-    </div>
-  </section>
-
-  <div class="footer">Rapid Ads • Earn responsibly</div>
-</main>
-
-<!-- TWO-BUTTON NAVIGATION -->
-
-<nav class="bottom-nav" aria-label="Main navigation">
-  <button class="nav-button active" type="button"
-          data-go="earn" aria-current="page">
-    <span class="nav-icon">💰</span>
-    <span>Earn</span>
-  </button>
-
-  <button class="nav-button" type="button" data-go="advertise">
-    <span class="nav-icon">📢</span>
-    <span>Advertise</span>
-  </button>
-</nav>
-
-<div id="toast" role="status" aria-live="polite"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-(function () {
-  "use strict";
+/* TELEGRAM */
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
 
-  const tg = window.Telegram && window.Telegram.WebApp;
-  const BOT_USERNAME = "rapidads_bot";
-  // Rapid Ads balance API
-  const BALANCE_REQUEST_API =
-  "https://rapid-ads-api.godwinjohn451.workers.dev/balance-request";
-
-const BALANCE_RESULT_API =
-  "https://rapid-ads-api.godwinjohn451.workers.dev/balance-result";
-
-  const balanceChip = document.getElementById("balanceChip");
-  const balanceStatus = document.getElementById("balanceStatus");
-  const refreshBalanceButton = document.getElementById("refreshBalance");
-
-  async function refreshBalance() {
-  if (!tg || !tg.initData) {
-    balanceStatus.textContent =
-      "Please open Rapid Ads from its Telegram Mini App button.";
-    return;
-  }
-
-  if (refreshBalanceButton.disabled) {
-    return;
-  }
-
-  refreshBalanceButton.disabled = true;
-  refreshBalanceButton.textContent = "Checking live balance...";
-  balanceStatus.textContent =
-    "Requesting your latest balance from Rapid Ads...";
-
-  try {
-    // Step 1: Ask Cloudflare to request the balance from TBC.
-    const requestResponse = await fetch(BALANCE_REQUEST_API, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        initData: tg.initData
-      }),
-      cache: "no-store"
-    });
-
-    const requestResult = await requestResponse.json();
-
-    if (!requestResponse.ok || !requestResult.ok) {
-      throw new Error(
-        requestResult.error || "Could not request your live balance."
-      );
-    }
-
-    const requestId = requestResult.request_id;
-
-    if (typeof requestId !== "string" || !requestId) {
-      throw new Error("The balance request ID was missing.");
-    }
-
-    balanceStatus.textContent =
-      "Your balance request was sent. Waiting for confirmation...";
-
-    // Step 2: Poll Cloudflare for the matching TBC response.
-    const deadline = Date.now() + 25000;
-
-    while (Date.now() < deadline) {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      const resultResponse = await fetch(BALANCE_RESULT_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          initData: tg.initData,
-          request_id: requestId
-        }),
-        cache: "no-store"
-      });
-
-      const result = await resultResponse.json();
-
-      if (!resultResponse.ok || !result.ok) {
-        throw new Error(
-          result.error || "Could not retrieve the balance result."
-        );
-      }
-
-      if (result.ready === true) {
-        if (
-          typeof result.balance !== "number" ||
-          !Number.isFinite(result.balance) ||
-          result.balance < 0
-        ) {
-          throw new Error("The returned balance was invalid.");
-        }
-
-        const formattedBalance = "$" + result.balance.toFixed(3);
-
-        balanceChip.textContent = "💰 " + formattedBalance;
-        balanceStatus.textContent =
-          "Live balance received from Telebot Creator.";
-
-        return;
-      }
-
-      balanceStatus.textContent =
-        "Waiting for Telebot Creator to return your balance...";
-    }
-
-    throw new Error(
-      "Your balance response is taking longer than expected. Please try again."
-    );
-
-  } catch (error) {
-    balanceStatus.textContent =
-      error.message ||
-      "Unable to retrieve your live balance. Please try again.";
-  } finally {
-    refreshBalanceButton.disabled = false;
-    refreshBalanceButton.textContent = "💰 Check My Balance";
-  }
-  }
-
-  // Keep the manual balance button.
-  refreshBalanceButton.addEventListener("click", refreshBalance);
-
-  // Initialize the Telegram Mini App.
-  if (tg) {
-    tg.ready();
-    tg.expand();
-  }
-
-  const pages = document.querySelectorAll(".page");
-  const navButtons = document.querySelectorAll(".nav-button");
-  const toast = document.getElementById("toast");
-  let toastTimer = null;
-
-  function showNotice(message) {
-    toast.textContent = message;
-    toast.style.display = "block";
-
-    if (toastTimer) clearTimeout(toastTimer);
-
-    toastTimer = setTimeout(function () {
-      toast.style.display = "none";
-    }, 4500);
-  }
-
-  function openBot(parameter) {
-    const url = "https://t.me/" + BOT_USERNAME +
-      "?start=" + encodeURIComponent(parameter);
-
-    if (tg && typeof tg.openTelegramLink === "function") {
-      tg.openTelegramLink(url);
-    } else {
-      window.location.href = url;
-    }
-  }
-
-  function navigate(pageName) {
-    const target = document.getElementById("page-" + pageName);
-
-    if (!target) {
-      showNotice("This section is unavailable.");
-      return;
-    }
-
-    pages.forEach(function (page) {
-      page.classList.toggle("active", page === target);
-    });
-
-    navButtons.forEach(function (button) {
-      const active = button.dataset.go === pageName;
-      button.classList.toggle("active", active);
-
-      if (active) {
-        button.setAttribute("aria-current", "page");
-      } else {
-        button.removeAttribute("aria-current");
-      }
-    });
-
-    window.scrollTo({ top: 0, behavior: "auto" });
-  }
-
-  document.querySelectorAll("[data-go]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      navigate(button.dataset.go);
-    });
-  });
-
-  document.querySelectorAll("[data-command]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      openBot(button.dataset.command);
-    });
-  });
-
-  document.querySelectorAll("[data-notice]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      showNotice(button.dataset.notice);
-    });
-  });
-
-  // Switch between Sponsored Tasks and Watch Ads.
-  document.querySelectorAll("[data-earn-tab]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      const selected = button.dataset.earnTab;
-
-      document.querySelectorAll("[data-earn-tab]").forEach(function (tab) {
-        const active = tab === button;
-        tab.classList.toggle("active", active);
-        tab.setAttribute("aria-selected", String(active));
-      });
-
-      document.querySelectorAll(".earn-panel").forEach(function (panel) {
-        panel.classList.toggle("active", panel.id === "earn-" + selected);
-      });
-    });
-  });
-
-  // Local campaign preview only. This does not submit a campaign.
-  const campaignForm = document.getElementById("campaignForm");
-  const campaignPreview = document.getElementById("campaignPreview");
-
-  campaignForm.addEventListener("submit", function (event) {
-    event.preventDefault();
-
-    const title = document.getElementById("campaignTitle").value.trim();
-    const type = document.getElementById("campaignType").value;
-    const link = document.getElementById("campaignUrl").value.trim();
-    const description = document.getElementById("campaignDescription").value.trim();
-
-    let parsedUrl;
-
-    try {
-      parsedUrl = new URL(link);
-    } catch (error) {
-      showNotice("Please enter a valid promotion link.");
-      return;
-    }
-
-    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
-      showNotice("Please use an HTTP or HTTPS link.");
-      return;
-    }
-
-    campaignPreview.replaceChildren();
-
-    const box = document.createElement("div");
-    box.className = "info-box";
-
-    const heading = document.createElement("strong");
-    heading.textContent = "Campaign draft preview";
-
-    const details = [
-      "Name: " + title,
-      "Type: " + type,
-      "Link: " + link,
-      "Requirements: " + description,
-      "Status: Draft only. Nothing has been submitted or charged."
-    ];
-
-    box.appendChild(heading);
-
-    details.forEach(function (detail) {
-      const paragraph = document.createElement("p");
-      paragraph.textContent = detail;
-      box.appendChild(paragraph);
-    });
-
-    campaignPreview.appendChild(box);
-
-    showNotice("Draft preview created. The marketplace is not connected yet.");
-  });
-  // Monetag rewarded advertisement — cooldown and live countdown
-const monetagButton = document.getElementById("monetagWatchButton");
-
+/* API ENDPOINTS */
 const MONETAG_REGISTER_API =
   "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-register";
 
 const MONETAG_COOLDOWN_API =
   "https://rapid-ads-api.godwinjohn451.workers.dev/monetag-cooldown-start";
 
-let monetagCountdownTimer = null;
+const monetagButton =
+  document.getElementById("monetagWatchButton");
+
+const monetagStatus =
+  document.getElementById("monetagStatus");
+
 let monetagBusy = false;
 
-function formatMonetagTime(seconds) {
-  const safeSeconds = Math.max(0, Math.ceil(seconds));
-  const minutes = Math.floor(safeSeconds / 60);
-  const remainder = safeSeconds % 60;
+/* TOAST MESSAGE */
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.display = "block";
 
-  return String(minutes).padStart(2, "0") + ":" +
-    String(remainder).padStart(2, "0");
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 3500);
 }
 
-function showMonetagCountdown(seconds) {
-  if (!monetagButton) return;
-
-  if (monetagCountdownTimer) {
-    clearInterval(monetagCountdownTimer);
-    monetagCountdownTimer = null;
-  }
-
-  let remaining = Math.max(0, Math.ceil(Number(seconds) || 0));
-
-  if (remaining <= 0) {
-    monetagButton.disabled = false;
-    monetagButton.textContent = "📺 Watch Ad";
-    return;
-  }
-
-  monetagButton.disabled = true;
-  monetagButton.textContent =
-    "Next ad available in " + formatMonetagTime(remaining);
-
-  monetagCountdownTimer = setInterval(() => {
-    remaining -= 1;
-
-    if (remaining <= 0) {
-      clearInterval(monetagCountdownTimer);
-      monetagCountdownTimer = null;
-      monetagButton.disabled = false;
-      monetagButton.textContent = "📺 Watch Ad";
-      return;
-    }
-
-    monetagButton.textContent =
-      "Next ad available in " + formatMonetagTime(remaining);
-  }, 1000);
-}
-
+/* MONETAG API REQUEST */
 async function monetagApiRequest(action, extra = {}) {
   const response = await fetch(MONETAG_COOLDOWN_API, {
     method: "POST",
@@ -1155,195 +520,205 @@ async function monetagApiRequest(action, extra = {}) {
       initData: tg.initData,
       action: action,
       ...extra
-    }),
-    cache: "no-store"
+    })
   });
 
-  const body = await response.json();
+  const result = await response.json();
 
-  if (!response.ok || body.ok !== true) {
-    throw new Error(body.error || "Monetag API request failed");
+  if (!response.ok || result.ok === false) {
+    throw new Error(
+      result.message || result.error || "Monetag request failed."
+    );
   }
 
-  return body.result;
+  return result;
 }
 
+/* REFRESH COOLDOWN */
 async function refreshMonetagCooldown() {
-  if (
-    !monetagButton ||
-    !tg ||
-    !tg.initData ||
-    !tg.initDataUnsafe?.user?.id
-  ) {
+  try {
+    if (!tg.initData) {
+      monetagStatus.textContent =
+        "Open Rapid Ads inside Telegram.";
+      monetagButton.disabled = true;
+      return;
+    }
+
+    const result = await monetagApiRequest("check_cooldown");
+
+    const remaining = Number(result.remaining_seconds || 0);
+
+    if (remaining > 0) {
+      monetagButton.disabled = true;
+
+      monetagStatus.textContent =
+        "Next ad available in " + remaining + " seconds.";
+
+      monetagButton.textContent =
+        "PLEASE WAIT " + remaining + "s";
+    } else {
+      monetagButton.disabled = false;
+
+      monetagStatus.textContent =
+        "You can watch an available advertisement.";
+
+      monetagButton.textContent =
+        "▶ WATCH MONETAG AD";
+    }
+
+  } catch (error) {
+    monetagButton.disabled = true;
+    monetagStatus.textContent =
+      "Unable to check ad availability. Please try again.";
+  }
+}
+
+/* MONETAG REGISTER */
+async function registerMonetagWatch(ymid, reservationToken) {
+  const response = await fetch(MONETAG_REGISTER_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      initData: tg.initData,
+      ymid: ymid,
+      reservation_token: reservationToken
+    })
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || result.ok === false) {
+    throw new Error(
+      result.message || result.error || "Unable to register ad."
+    );
+  }
+
+  return result;
+}
+
+/* MONETAG WATCH BUTTON */
+monetagButton.addEventListener("click", async function() {
+
+  if (monetagBusy) return;
+
+  if (!tg.initData || !tg.initDataUnsafe ||
+      !tg.initDataUnsafe.user ||
+      !tg.initDataUnsafe.user.id) {
+
+    showToast("Please open Rapid Ads inside Telegram.");
     return;
   }
 
-  try {
-    const result = await monetagApiRequest("check_cooldown");
-    const remaining = Number(result.remaining_seconds);
-
-    if (!Number.isFinite(remaining)) {
-      throw new Error("Invalid cooldown response");
-    }
-
-    showMonetagCountdown(remaining);
-  } catch (error) {
-    console.error("Monetag cooldown check failed:", error);
-    monetagButton.disabled = true;
-    monetagButton.textContent = "Unable to check cooldown";
+  if (typeof window.show_12109194 !== "function") {
+    showToast("Monetag is not ready. Please try again.");
+    return;
   }
-}
 
-if (monetagButton) {
-  refreshMonetagCooldown();
+  monetagBusy = true;
+  monetagButton.disabled = true;
+  monetagButton.textContent = "PREPARING AD...";
 
-  monetagButton.addEventListener("click", async function () {
-    if (monetagBusy) return;
+  let reservationToken = null;
+  let sdkAttempted = false;
 
-    if (!tg || !tg.initData || !tg.initDataUnsafe?.user?.id) {
-      showNotice(
-        "Please open Rapid Ads from its Telegram Mini App button."
+  try {
+
+    /* RESERVE WATCH SESSION */
+    const reservation = await monetagApiRequest(
+      "reserve_watch"
+    );
+
+    if (!reservation.can_watch) {
+      const remaining =
+        Number(reservation.remaining_seconds || 60);
+
+      showToast(
+        "Please wait " + remaining + " seconds before watching again."
       );
+
       return;
     }
 
-    if (typeof window.show_12109194 !== "function") {
-      showNotice(
-        "Monetag is still loading or no advertisement is available. Please try again."
+    reservationToken = reservation.reservation_token;
+
+    /* UNIQUE MONETAG EVENT ID */
+    const ymid =
+      "ra_" +
+      Date.now() +
+      "_" +
+      Math.random().toString(36).substring(2, 10);
+
+    /* REGISTER EVENT WITH BACKEND */
+    await registerMonetagWatch(
+      ymid,
+      reservationToken
+    );
+
+    /* SHOW MONETAG AD */
+    sdkAttempted = true;
+
+    monetagButton.textContent = "ADVERTISEMENT OPENED...";
+
+    const adResult = await window.show_12109194({
+      ymid: ymid,
+      requestVar: "rapid_ads_watch"
+    });
+
+    if (adResult &&
+        adResult.reward_event_type === "valued") {
+
+      showToast(
+        "Monetag reported a valued ad event. Reward crediting is not enabled yet."
       );
-      return;
+
+    } else {
+      showToast(
+        "Ad session finished. Waiting for network verification."
+      );
     }
 
-    monetagBusy = true;
-    monetagButton.disabled = true;
-    monetagButton.textContent = "Checking availability...";
+  } catch (error) {
 
-    let reservationToken = null;
-    let adAttemptStarted = false;
+    showToast(
+      error.message || "Something went wrong. Please try again."
+    );
 
-    try {
-      // Reserve a single watch session. This does not start the cooldown.
-      const reservation = await monetagApiRequest("reserve_watch");
+  } finally {
 
-      if (reservation.can_watch !== true) {
-        const remaining = Number(reservation.remaining_seconds);
-
-        if (Number.isFinite(remaining) && remaining > 0) {
-          showMonetagCountdown(remaining);
-        } else {
-          monetagButton.disabled = true;
-          monetagButton.textContent =
-            "An advertisement session is already in progress";
-        }
-
-        showNotice(
-          reservation.message ||
-          "An advertisement cannot be started right now."
-        );
-        return;
-      }
-
-      reservationToken = reservation.reservation_token;
-
-      if (!reservationToken) {
-        throw new Error("The API did not return a reservation token");
-      }
-
-      // Register the session with the existing API.
-      monetagButton.textContent = "Registering advertisement...";
-
-      const ymid =
-        "ra_" + Date.now() + "_" +
-        Math.random().toString(36).slice(2, 10);
-
-      const registerResponse = await fetch(MONETAG_REGISTER_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-      body: JSON.stringify({
-  initData: tg.initData,
-  ymid: ymid,
-  reservation_token: reservationToken
-}),
-        cache: "no-store"
-      });
-
-      const registerResult = await registerResponse.json();
-
-      if (!registerResponse.ok || registerResult.ok !== true) {
-        throw new Error(
-          registerResult.error || "Advertisement registration failed"
-        );
-      }
-
-      // The ad attempt begins here.
-      monetagButton.textContent = "Loading advertisement...";
-      adAttemptStarted = true;
-
-      let adResult;
-
+    /* FINISH OR CANCEL RESERVATION */
+    if (reservationToken) {
       try {
-        adResult = await window.show_12109194({
-          ymid: ymid,
-          requestVar: "rapid_ads_watch"
-        });
-
-        if (adResult && adResult.reward_event_type === "valued") {
-          showNotice(
-            "Monetag reported a valued ad event. Reward crediting is not enabled yet."
-          );
-        } else {
-          showNotice(
-            "The advertisement attempt finished. No reward was credited."
-          );
-        }
-      } finally {
-        // Start the cooldown after the SDK attempt settles.
-        const finished = await monetagApiRequest("finish_watch", {
-          reservation_token: reservationToken
-        });
-
-        reservationToken = null;
-
-        if (finished.cooldown_started === true) {
-          showMonetagCountdown(
-            Number(finished.remaining_seconds) || 60
-          );
-        } else {
-          throw new Error("The API did not confirm the cooldown");
-        }
-      }
-    } catch (error) {
-      console.error("Monetag watch error:", error);
-
-      // Release a reservation if the ad attempt never began.
-      if (reservationToken && !adAttemptStarted) {
-        try {
-          await monetagApiRequest("cancel_watch", {
+        await monetagApiRequest(
+          sdkAttempted ? "finish_watch" : "cancel_watch",
+          {
             reservation_token: reservationToken
-          });
-          reservationToken = null;
-        } catch (cancelError) {
-          console.error(
-            "Monetag reservation cancellation failed:",
-            cancelError
-          );
-        }
+          }
+        );
+      } catch (cleanupError) {
+        console.log("Session cleanup:", cleanupError);
       }
+    }
 
-      showNotice(
-        "The ad attempt could not be completed or verified. No reward was credited."
-      );
+    monetagBusy = false;
 
-      // Re-check server state instead of assuming the user is eligible.
-      await refreshMonetagCooldown();
-    } finally {
-      monetagBusy = false;
-      }
-  });
- }
-})();
+    await refreshMonetagCooldown();
+  }
+
+});
+
+/* INITIAL LOAD */
+refreshMonetagCooldown();
+
+/* REFRESH COOLDOWN DISPLAY */
+setInterval(() => {
+  if (!monetagBusy) {
+    refreshMonetagCooldown();
+  }
+}, 15000);
+
 </script>
+
 </body>
-</html>
+  </html>
