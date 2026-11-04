@@ -719,11 +719,12 @@ monetagButton.addEventListener("click", async function() {
     if (reservationToken) {
       try {
         await monetagApiRequest(
-          sdkAttempted ? "finish_watch" : "cancel_watch",
-          {
-            reservation_token: reservationToken
-          }
-        );
+  sdkAttempted ? "finish_watch" : "cancel_watch",
+  {
+    reservation_token: reservationToken,
+    ...(sdkAttempted ? { ymid: ymid } : {})
+  }
+);
       } catch (cleanupError) {
         console.log("Session cleanup:", cleanupError);
       }
