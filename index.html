@@ -89,6 +89,24 @@ body{
 .history-icon{font-size:28px;margin-bottom:8px}
 .history-card h3{font-size:14px;margin:5px 0}
 .history-card p{color:var(--muted);font-size:11px;line-height:1.6;margin:7px 0 0}
+.history-item {
+  text-align: left;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.history-item strong {
+  display: block;
+  color: var(--green);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
 .footer{text-align:center;color:#607086;font-size:10px;margin-top:30px}
 .toast{
   position:fixed;bottom:25px;left:50%;transform:translateX(-50%);
@@ -223,7 +241,9 @@ main[hidden] {
   >
     ↻ REFRESH HISTORY
   </button>
-</section>div class="footer">Rapid Ads • Earn responsibly</div>
+</section>
+
+<div class="footer">Rapid Ads • Earn responsibly</div>
 </main>
 </div><div class="toast" id="toast" role="status"></div><script>
 /* TELEGRAM */
@@ -338,7 +358,7 @@ async function monetagApiRequest(action, extra = {}) {
 
   const result = await response.json();
 
-  if (!response.ok || result.ok === false) {
+  if (!response.ok || result.ok !== true) {
     throw new Error(result.message || result.error || "Monetag request failed.");
   }
 
