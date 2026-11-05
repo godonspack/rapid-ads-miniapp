@@ -96,6 +96,9 @@ body{
   padding:12px 18px;border-radius:12px;font-size:12px;display:none;
   z-index:1000;width:max-content;max-width:90%;text-align:center
 }
+main[hidden] {
+  display: none !important;
+  }
 </style></head><body>
 <div class="container"><header class="header">
   <div class="brand">
@@ -106,6 +109,7 @@ body{
     </div>
   </div>
   <div class="status">● ONLINE</div>
+<main id="registrationScreen">
 </header><section class="hero">
   <div class="hero-label">Welcome to Rapid Ads</div>
   <h1>Watch Ads.<br>Earn Rewards.</h1>
@@ -135,13 +139,23 @@ body{
       required
     >
     <button class="main-button" id="registerEmailButton" type="submit">
-      SAVE FAUCETPAY EMAIL
+      CONTINUE TO EARN
     </button>
   </form>  <div id="emailStatus" class="form-status" aria-live="polite">
     Your FaucetPay email has not been entered in this session.
   </div>
-</section><div class="section-title">
-  <h2>Earn with Ads</h2>
+</section>
+</main>
+
+<main id="earnScreen" hidden>
+  <section class="hero">
+    <div class="hero-label">Your earning dashboard</div>
+    <h1>Earn with Ads 🚀</h1>
+    <p>Watch eligible advertisements and receive verified rewards directly through FaucetPay.</p>
+  </section>
+
+  <div class="section-title">
+    <h2>Earn with Ads</h2>
   <span>Available networks</span>
 </div><!-- MONETAG --><section class="network-card">
   <div class="network-top">
@@ -200,6 +214,7 @@ body{
   <h3>Payment history will appear here</h3>
   <p>Your verified direct FaucetPay payments will be listed here after the payout system is connected.</p>
 </section><div class="footer">Rapid Ads • Earn responsibly</div>
+</main>
 </div><div class="toast" id="toast" role="status"></div><script>
 /* TELEGRAM */
 const tg = window.Telegram.WebApp;
@@ -212,6 +227,7 @@ const API_BASE = "https://api.rapidads.name.ng";
 const FAUCETPAY_EMAIL_API = API_BASE + "/faucetpay-email";
 const MONETAG_REGISTER_API = API_BASE + "/monetag-register";
 const MONETAG_COOLDOWN_API = API_BASE + "/monetag-cooldown-start";
+const PAYMENT_HISTORY_API = API_BASE + "/payment-history";
 
 const monetagButton = document.getElementById("monetagWatchButton");
 const monetagStatus = document.getElementById("monetagStatus");
@@ -220,8 +236,15 @@ const emailInput = document.getElementById("faucetpayEmail");
 const emailButton = document.getElementById("registerEmailButton");
 const emailStatus = document.getElementById("emailStatus");
 
+const registrationScreen = document.getElementById("registrationScreen");
+const earnScreen = document.getElementById("earnScreen");
+
 let monetagBusy = false;
 let emailRegisteredThisSession = false;
+
+// Always start with email registration when the app opens.
+registrationScreen.hidden = false;
+earnScreen.hidden = true;
 
 /* TOAST */
 function showToast(message) {
@@ -271,6 +294,8 @@ emailForm.addEventListener("submit", async function(event) {
     }
 
     emailRegisteredThisSession = true;
+    registrationScreen.hidden = true;
+earnScreen.hidden = false;
     emailInput.value = email;
 
     emailStatus.textContent =
@@ -278,13 +303,13 @@ emailForm.addEventListener("submit", async function(event) {
 
     emailStatus.className = "form-status success";
     showToast("FaucetPay email saved successfully.");
-
+await refreshMonetagCooldown();
   } catch (error) {
     emailStatus.textContent = error.message || "Unable to register email.";
     emailStatus.className = "form-status error";
   } finally {
     emailButton.disabled = false;
-    emailButton.textContent = "SAVE FAUCETPAY EMAIL";
+    emailButton.textContent = "CONTINUE TO EARN";
   }
 });
 
@@ -314,6 +339,13 @@ let monetagTimerInterval = null;
 
 async function refreshMonetagCooldown() {
   try {
+        if (!emailRegisteredThisSession) {
+      monetagButton.disabled = true;
+      monetagButton.textContent = "REGISTER EMAIL FIRST";
+      monetagStatus.textContent =
+        "Register your FaucetPay email to unlock Monetag ads.";
+      return;
+        }
     if (!tg.initData) {
       monetagStatus.textContent = "Open Rapid Ads inside Telegram.";
       monetagButton.disabled = true;
