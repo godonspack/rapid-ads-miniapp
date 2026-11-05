@@ -109,8 +109,10 @@ main[hidden] {
     </div>
   </div>
   <div class="status">● ONLINE</div>
+</header>
+
 <main id="registrationScreen">
-</header><section class="hero">
+<section class="hero">
   <div class="hero-label">Welcome to Rapid Ads</div>
   <h1>Watch Ads.<br>Earn Rewards.</h1>
   <p>Earn through advertising networks. Complete eligible ad views and receive rewards when verified payout services are connected.</p>
@@ -209,11 +211,19 @@ main[hidden] {
 </div><div class="section-title">
   <h2>Payment History</h2>
   <span>FaucetPay payments</span>
-</div><section class="history-card">
+</div><section class="history-card" id="paymentHistory">
   <div class="history-icon">🧾</div>
-  <h3>Payment history will appear here</h3>
-  <p>Your verified direct FaucetPay payments will be listed here after the payout system is connected.</p>
-</section><div class="footer">Rapid Ads • Earn responsibly</div>
+  <h3>Payment History</h3>
+  <p id="historyMessage">Loading your payment history...</p>
+  <div id="historyList"></div>
+  <button
+    class="secondary-button"
+    id="refreshHistoryButton"
+    type="button"
+  >
+    ↻ REFRESH HISTORY
+  </button>
+</section>div class="footer">Rapid Ads • Earn responsibly</div>
 </main>
 </div><div class="toast" id="toast" role="status"></div><script>
 /* TELEGRAM */
@@ -304,6 +314,7 @@ earnScreen.hidden = false;
     emailStatus.className = "form-status success";
     showToast("FaucetPay email saved successfully.");
 await refreshMonetagCooldown();
+  await loadPaymentHistory();
   } catch (error) {
     emailStatus.textContent = error.message || "Unable to register email.";
     emailStatus.className = "form-status error";
@@ -339,13 +350,14 @@ let monetagTimerInterval = null;
 
 async function refreshMonetagCooldown() {
   try {
-        if (!emailRegisteredThisSession) {
-      monetagButton.disabled = true;
-      monetagButton.textContent = "REGISTER EMAIL FIRST";
-      monetagStatus.textContent =
-        "Register your FaucetPay email to unlock Monetag ads.";
-      return;
-        }
+      if (!emailRegisteredThisSession) {
+  monetagButton.disabled = true;
+  monetagButton.textContent = "REGISTER EMAIL FIRST";
+  monetagStatus.textContent =
+    "Register your FaucetPay email to unlock Monetag ads.";
+  return;
+  }  
+  
     if (!tg.initData) {
       monetagStatus.textContent = "Open Rapid Ads inside Telegram.";
       monetagButton.disabled = true;
@@ -406,7 +418,94 @@ async function registerMonetagWatch(ymid, reservationToken) {
 
   return result;
 }
+/* PAYMENT HISTORY */
+async function loadPaymentHistory() {
+  const historyMessage = document.getElementById("historyMessage");
+  const historyList = document.getElementById("historyList");
 
+  if (!emailRegisteredThisSession) {
+    historyMessage.textContent =
+      "Register your FaucetPay email to view your payment history.";
+    historyList.replaceChildren();
+    return;
+  }
+
+  historyMessage.textContent = "Loading payment history...";
+  historyList.replaceChildren();
+
+  try {
+    const response = await fetch(PAYMENT_HISTORY_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        initData: tg.initData
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.ok !== true) {
+      throw new Error(
+        result.error || "Unable to load payment history."
+      );
+    }
+
+    const payments = result.payments || [];
+
+    if (payments.length === 0) {
+      historyMessage.textContent =
+        "No payment records yet. Verified payments will appear here.";
+      return;
+    }
+
+    historyMessage.textContent =
+      payments.length + " payment record(s) found.";
+
+    payments.forEach(payment => {
+      const item = document.createElement("div");
+      item.className = "history-item";
+
+      const amount = (
+        Number(payment.amount_units) / 100000000
+      ).toFixed(8);
+
+      const date = new Date(
+        Number(payment.created_at) * 1000
+      );
+
+      const status = String(payment.status || "UNKNOWN").toUpperCase();
+
+      const title = document.createElement("strong");
+      title.textContent = amount + " " + payment.currency;
+
+      const statusText = document.createElement("div");
+      statusText.textContent = "Status: " + status;
+
+      const dateText = document.createElement("div");
+      dateText.textContent = isNaN(date.getTime())
+        ? "Date unavailable"
+        : date.toLocaleString();
+
+      const reference = document.createElement("div");
+      reference.textContent = payment.faucetpay_reference
+        ? "Reference: " + payment.faucetpay_reference
+        : "Payment reference: Not available";
+
+      item.append(title, statusText, dateText, reference);
+      historyList.appendChild(item);
+    });
+
+  } catch (error) {
+    historyMessage.textContent =
+      error.message || "Unable to load payment history.";
+  }
+}
+
+document
+  .getElementById("refreshHistoryButton")
+  .addEventListener("click", loadPaymentHistory);
 /* MONETAG WATCH BUTTON */
 monetagButton.addEventListener("click", async function() {
   if (monetagBusy) return;
