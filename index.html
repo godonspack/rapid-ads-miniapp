@@ -389,9 +389,9 @@ async function refreshMonetagCooldown() {
 
     updateCountdown();
 
-    if (remaining > 0) {
-      monetagTimerInterval = setInterval(updateCountdown, 1000);
-    }
+if (monetagButton.disabled) {
+  monetagTimerInterval = setInterval(updateCountdown, 1000);
+}
   } catch (error) {
     monetagButton.disabled = true;
     monetagStatus.textContent = "Unable to check cooldown. Please try again.";
@@ -400,6 +400,18 @@ async function refreshMonetagCooldown() {
 
 /* MONETAG REGISTER */
 async function registerMonetagWatch(ymid, reservationToken) {
+  if (!emailRegisteredThisSession) {
+    throw new Error("Please register your FaucetPay email first.");
+  }
+
+  if (!tg.initData) {
+    throw new Error("Please open Rapid Ads inside Telegram.");
+  }
+
+  if (!ymid || !reservationToken) {
+    throw new Error("Missing ad session details. Please try again.");
+  }
+
   const response = await fetch(MONETAG_REGISTER_API, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -412,12 +424,14 @@ async function registerMonetagWatch(ymid, reservationToken) {
 
   const result = await response.json();
 
-  if (!response.ok || result.ok === false) {
-    throw new Error(result.message || result.error || "Unable to register ad.");
+  if (!response.ok || result.ok !== true) {
+    throw new Error(
+      result.message || result.error || "Unable to register ad."
+    );
   }
 
   return result;
-}
+  }
 /* PAYMENT HISTORY */
 async function loadPaymentHistory() {
   const historyMessage = document.getElementById("historyMessage");
@@ -586,13 +600,3 @@ monetagButton.addEventListener("click", async function() {
     await refreshMonetagCooldown();
   }
 });
-
-/* INITIAL LOAD */
-refreshMonetagCooldown();
-
-/* REFRESH COOLDOWN DISPLAY */
-setInterval(() => {
-  if (!monetagBusy) refreshMonetagCooldown();
-}, 15000);
-</script></body>
-      </html>
