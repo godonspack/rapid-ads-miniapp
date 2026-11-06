@@ -386,12 +386,23 @@ async function refreshMonetagCooldown() {
 
     const result = await monetagApiRequest("check_cooldown");
     let remaining = Math.max(0, Number(result.remaining_seconds || 0));
+if (monetagTimerInterval) {
+  clearInterval(monetagTimerInterval);
+  monetagTimerInterval = null;
+}
 
-    if (monetagTimerInterval) {
-      clearInterval(monetagTimerInterval);
-      monetagTimerInterval = null;
-    }
+const dailyRemaining = Math.max(
+  0,
+  Number(result.daily_remaining ?? 0)
+);
 
+if (dailyRemaining <= 0) {
+  monetagButton.disabled = true;
+  monetagButton.textContent = "DAILY LIMIT REACHED";
+  monetagStatus.textContent =
+    "You have reached your daily limit of 100 Monetag ads. Your limit resets at midnight UTC.";
+  return;
+  }
     function updateCountdown() {
       if (remaining > 0) {
         monetagButton.disabled = true;
