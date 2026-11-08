@@ -188,7 +188,7 @@ main[hidden] {
   </div>  <div class="network-details">
     <div class="detail">Target reward<strong>$0.0005</strong></div>
     <div class="detail">Cooldown<strong>1 minute</strong></div>
-    <div class="detail">Daily target<strong>100 views</strong></div>
+    <div class="detail">Daily target<strong id="monetagDailyTarget">0/100 views</strong></div>
   </div><button class="main-button" id="monetagWatchButton">▶ WATCH MONETAG AD</button>
 
   <div id="monetagStatus" class="detail" style="margin-top:12px;text-align:center;">
@@ -391,6 +391,17 @@ async function refreshMonetagCooldown() {
 if (monetagTimerInterval) {
   clearInterval(monetagTimerInterval);
   monetagTimerInterval = null;
+}
+
+const dailyCount = Math.max(
+  0,
+  Math.min(100, Number(result.daily_count ?? 0))
+);
+
+const dailyTarget = document.getElementById("monetagDailyTarget");
+
+if (dailyTarget) {
+  dailyTarget.textContent = dailyCount + "/100 views";
 }
 
 const dailyRemaining = Math.max(
