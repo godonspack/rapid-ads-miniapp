@@ -607,6 +607,7 @@ monetagButton.addEventListener("click", async function() {
   let reservationToken = null;
   let sdkAttempted = false;
   let ymid = null;
+  let valuedEvent = false;
 
   try {
     const reservation = await monetagApiRequest("reserve_watch");
@@ -632,14 +633,18 @@ monetagButton.addEventListener("click", async function() {
       requestVar: "rapid_ads_watch"
     });
 
-    if (adResult && adResult.reward_event_type === "valued") {
-      showToast("Monetag reported a valued event. Reward crediting is not enabled yet.");
-    } else {
+    valuedEvent = Boolean(
+      adResult &&
+      adResult.reward_event_type === "valued"
+    );
+
+    if (!valuedEvent) {
       showToast("Ad session finished. Waiting for network verification.");
     }
 
   } catch (error) {
     showToast(error.message || "Something went wrong. Please try again.");
+
   } finally {
     if (reservationToken) {
       try {
@@ -652,6 +657,72 @@ monetagButton.addEventListener("click", async function() {
         );
       } catch (cleanupError) {
         console.log("Session cleanup:", cleanupError);
+      }
+    }
+
+    if (valuedEvent && ymid) {
+      monetagButton.textContent = "CHECKING PAYMENT...";
+
+      let paymentResult = null;
+
+      for (let attempt = 0; attempt < 20; attempt++) {
+        try {
+          const response = await fetch(API_BASE + "/payment-status", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              initData: tg.initData,
+              ymid: ymid
+            })
+          });
+
+          const result = await response.json();
+
+          if (!response.ok || result.ok !== true) {
+            throw new Error(
+              result.error || "Unable to check payment status."
+            );
+          }
+
+          paymentResult = result;
+
+          if (
+            result.status === "PAID" ||
+            result.status === "FAILED" ||
+            result.status === "NOT_FOUND"
+          ) {
+            break;
+          }
+
+        } catch (paymentError) {
+          console.log("Payment status check:", paymentError);
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+
+      if (paymentResult && paymentResult.status === "PAID") {
+        const amount = (
+          Number(paymentResult.amount_units) / 100000000
+        ).toFixed(4);
+
+        showToast(
+          "🎉 Payment Successful! " +
+          amount + " " + paymentResult.currency +
+          " has been sent to your FaucetPay account."
+        );
+
+      } else if (paymentResult && paymentResult.status === "FAILED") {
+        showToast(
+          "Your ad was verified, but the FaucetPay payment failed. Please contact support."
+        );
+
+      } else {
+        showToast(
+          "Your ad session was recorded. Payment verification is still pending. Check your payment history shortly."
+        );
       }
     }
 
