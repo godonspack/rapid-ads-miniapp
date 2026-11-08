@@ -578,6 +578,7 @@ async function checkFaucetPayConfig() {
     alert("Configuration check failed: " + error.message);
   }
   }
+  checkFaucetPayConfig();
 /* MONETAG WATCH BUTTON */
 monetagButton.addEventListener("click", async function() {
   if (monetagBusy) return;
