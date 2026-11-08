@@ -258,6 +258,8 @@ const FAUCETPAY_EMAIL_API = API_BASE + "/faucetpay-email";
 const MONETAG_REGISTER_API = API_BASE + "/monetag-register";
 const MONETAG_COOLDOWN_API = API_BASE + "/monetag-cooldown-start";
 const PAYMENT_HISTORY_API = API_BASE + "/payment-history";
+const FAUCETPAY_CONFIG_CHECK_API =
+  API_BASE + "/faucetpay-config-check";
 
 const monetagButton = document.getElementById("monetagWatchButton");
 const monetagStatus = document.getElementById("monetagStatus");
@@ -551,6 +553,31 @@ async function loadPaymentHistory() {
 document
   .getElementById("refreshHistoryButton")
   .addEventListener("click", loadPaymentHistory);
+async function checkFaucetPayConfig() {
+  try {
+    const response = await fetch(FAUCETPAY_CONFIG_CHECK_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        initData: tg.initData
+      })
+    });
+
+    const result = await response.json();
+
+    alert(
+      "FaucetPay API key configured: " +
+      result.faucetpay_api_key_configured +
+      "\nPayouts enabled: " +
+      result.payouts_enabled
+    );
+
+  } catch (error) {
+    alert("Configuration check failed: " + error.message);
+  }
+  }
 /* MONETAG WATCH BUTTON */
 monetagButton.addEventListener("click", async function() {
   if (monetagBusy) return;
