@@ -241,10 +241,40 @@ const earnScreen = document.getElementById("earnScreen");
 let monetagBusy = false;
 let emailRegisteredThisSession = false;
 let historyRequestInProgress = false;
+let inAppInterstitialInitialized = false;
 
 /* Always request email again when the Mini App opens. */
 registrationScreen.hidden = false;
 earnScreen.hidden = true;
+
+/* MONETAG IN-APP INTERSTITIAL
+   Separate from Rewarded Interstitial: this format never creates user rewards. */
+async function initializeInAppInterstitial() {
+  if (inAppInterstitialInitialized) return;
+  if (typeof window.show_12109194 !== "function") {
+    console.warn("Monetag SDK is not ready; In-App Interstitial was not initialized.");
+    return;
+  }
+
+  // Set the guard before calling the SDK so it can never be initialized twice.
+  inAppInterstitialInitialized = true;
+  try {
+    await window.show_12109194({
+      type: "inApp",
+      inAppSettings: {
+        frequency: 4,
+        capping: 1,
+        interval: 180,
+        timeout: 30,
+        everyPage: false
+      }
+    });
+    console.log("Monetag In-App Interstitial schedule initialized.");
+  } catch (error) {
+    // Do not repeatedly initialize: Monetag ignores subsequent setup calls.
+    console.error("Monetag In-App Interstitial setup failed:", error);
+  }
+}
 
 /* TOAST */
 function showToast(message) {
@@ -295,6 +325,10 @@ emailForm.addEventListener("submit", async function(event) {
     emailStatus.textContent = "✓ FaucetPay email registered successfully: " + email;
     emailStatus.className = "form-status success";
     showToast("FaucetPay email saved successfully.");
+
+    // Start passive ads only after the user has registered and entered the earning area.
+    // This is an impression-only format and is not connected to FaucetPay rewards.
+    initializeInAppInterstitial();
 
     await refreshMonetagCooldown();
     await loadPaymentHistory();
