@@ -6,6 +6,7 @@
 <title>Rapid Ads</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://libtl.com/sdk.js" data-zone="12109194" data-sdk="show_12109194"></script>
+
 <style>
 :root {
   --bg:#080d16;--card:#111a28;--card2:#162235;
@@ -108,10 +109,16 @@ body{
   z-index:1000;width:max-content;max-width:90%;text-align:center
 }
 main[hidden]{display:none!important}
+@media(max-width:360px){
+  .network-details{flex-wrap:wrap}
+  .network-details .detail{min-width:28%}
+}
 </style>
 </head>
+
 <body>
 <div class="container">
+
 <header class="header">
   <div class="brand">
     <div class="logo">R</div>
@@ -129,10 +136,12 @@ main[hidden]{display:none!important}
     <h1>Watch Ads.<br>Earn Rewards.</h1>
     <p>Watch eligible Monetag advertisements and receive verified rewards directly through FaucetPay.</p>
   </section>
+
   <div class="section-title">
     <h2>FaucetPay Account</h2>
     <span>Required</span>
   </div>
+
   <section class="email-card">
     <div class="network-top">
       <div class="network-icon">📧</div>
@@ -142,10 +151,12 @@ main[hidden]{display:none!important}
       </div>
       <div class="badge">ACCOUNT</div>
     </div>
+
     <p class="email-description">
       Enter the email address associated with your FaucetPay account.
       You will be asked to enter it again when you reopen Rapid Ads.
     </p>
+
     <form id="faucetpayForm">
       <input class="email-input" id="faucetpayEmail" type="email"
         placeholder="Enter your FaucetPay email" maxlength="254"
@@ -154,6 +165,7 @@ main[hidden]{display:none!important}
         CONTINUE TO EARN
       </button>
     </form>
+
     <div id="emailStatus" class="form-status" aria-live="polite">
       Your FaucetPay email has not been entered in this session.
     </div>
@@ -172,34 +184,67 @@ main[hidden]{display:none!important}
     <span>Monetag</span>
   </div>
 
+  <!-- REWARDED INTERSTITIAL -->
   <section class="network-card">
     <div class="network-top">
       <div class="network-icon">📺</div>
       <div class="network-info">
-        <h3>Monetag Ads</h3>
+        <h3>Monetag Rewarded Interstitial</h3>
         <p>Watch available Monetag advertisements</p>
       </div>
       <div class="badge">AVAILABLE</div>
     </div>
+
     <div class="network-details">
       <div class="detail">Reward<strong>0.0005 USDT</strong></div>
       <div class="detail">Cooldown<strong>1 minute</strong></div>
       <div class="detail">Daily progress<strong id="monetagDailyTarget">0/100 views</strong></div>
     </div>
-    <button class="main-button" id="monetagWatchButton">▶ WATCH MONETAG AD</button>
+
+    <button class="main-button" id="monetagWatchButton">
+      ▶ WATCH INTERSTITIAL
+    </button>
+
     <div id="monetagStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
       Checking ad availability...
     </div>
   </section>
 
+  <!-- REWARDED POPUP -->
+  <section class="network-card">
+    <div class="network-top">
+      <div class="network-icon">🪟</div>
+      <div class="network-info">
+        <h3>Monetag Rewarded Popup</h3>
+        <p>Open a rewarded advertisement in a new tab</p>
+      </div>
+      <div class="badge">AVAILABLE</div>
+    </div>
+
+    <div class="network-details">
+      <div class="detail">Reward<strong>0.0002 USDT</strong></div>
+      <div class="detail">Cooldown<strong>None</strong></div>
+      <div class="detail">Daily progress<strong id="popupDailyTarget">0/50 views</strong></div>
+    </div>
+
+    <button class="main-button" id="popupWatchButton" disabled>
+      PREPARING POPUP...
+    </button>
+
+    <div id="popupStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
+      Preparing your Popup session...
+    </div>
+  </section>
+
   <div class="notice">
-    <strong>How rewards work:</strong> A reward is sent directly to your registered FaucetPay account only after Monetag confirms an eligible event and the payment is successfully processed. Simply opening or closing an advertisement does not guarantee a reward.
+    <strong>How rewards work:</strong> Rewards are sent directly to your registered FaucetPay account only after Monetag confirms an eligible event and the payment is successfully processed. Simply opening or closing an advertisement does not guarantee a reward.
   </div>
 
   <div class="section-title">
     <h2>Payment History</h2>
     <span>Latest 10 payments</span>
   </div>
+
   <section class="history-card" id="paymentHistory">
     <div class="history-icon">🧾</div>
     <h3>Recent Payments</h3>
@@ -213,6 +258,7 @@ main[hidden]{display:none!important}
   <div class="footer">Rapid Ads • Earn responsibly</div>
 </main>
 </div>
+
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -226,38 +272,59 @@ const API_BASE = "https://api.rapidads.name.ng";
 const FAUCETPAY_EMAIL_API = API_BASE + "/faucetpay-email";
 const MONETAG_REGISTER_API = API_BASE + "/monetag-register";
 const MONETAG_COOLDOWN_API = API_BASE + "/monetag-cooldown-start";
+const MONETAG_POPUP_PREPARE_API = API_BASE + "/monetag-popup-prepare";
 const PAYMENT_HISTORY_API = API_BASE + "/payment-history";
+const PAYMENT_STATUS_API = API_BASE + "/payment-status";
+
 const MAX_HISTORY_ITEMS = 10;
 
 const monetagButton = document.getElementById("monetagWatchButton");
 const monetagStatus = document.getElementById("monetagStatus");
+const popupButton = document.getElementById("popupWatchButton");
+const popupStatus = document.getElementById("popupStatus");
+
 const emailForm = document.getElementById("faucetpayForm");
 const emailInput = document.getElementById("faucetpayEmail");
 const emailButton = document.getElementById("registerEmailButton");
 const emailStatus = document.getElementById("emailStatus");
+
 const registrationScreen = document.getElementById("registrationScreen");
 const earnScreen = document.getElementById("earnScreen");
 
 let monetagBusy = false;
+let popupBusy = false;
 let emailRegisteredThisSession = false;
 let historyRequestInProgress = false;
 let inAppInterstitialInitialized = false;
+let readyPopupSession = null;
+let popupPreparing = false;
 
 /* Always request email again when the Mini App opens. */
 registrationScreen.hidden = false;
 earnScreen.hidden = true;
 
-/* MONETAG IN-APP INTERSTITIAL
-   Separate from Rewarded Interstitial: this format never creates user rewards. */
+/* TOAST */
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.style.display = "block";
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => {
+    toast.style.display = "none";
+  }, 3500);
+}
+
+/* PASSIVE IN-APP INTERSTITIAL */
 async function initializeInAppInterstitial() {
   if (inAppInterstitialInitialized) return;
+
   if (typeof window.show_12109194 !== "function") {
-    console.warn("Monetag SDK is not ready; In-App Interstitial was not initialized.");
+    console.warn("Monetag SDK is not ready.");
     return;
   }
 
-  // Set the guard before calling the SDK so it can never be initialized twice.
   inAppInterstitialInitialized = true;
+
   try {
     await window.show_12109194({
       type: "inApp",
@@ -269,20 +336,11 @@ async function initializeInAppInterstitial() {
         everyPage: false
       }
     });
-    console.log("Monetag In-App Interstitial schedule initialized.");
-  } catch (error) {
-    // Do not repeatedly initialize: Monetag ignores subsequent setup calls.
-    console.error("Monetag In-App Interstitial setup failed:", error);
-  }
-}
 
-/* TOAST */
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.style.display = "block";
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => { toast.style.display = "none"; }, 3500);
+    console.log("Monetag In-App Interstitial initialized.");
+  } catch (error) {
+    console.error("In-App Interstitial setup failed:", error);
+  }
 }
 
 /* FAUCETPAY EMAIL REGISTRATION */
@@ -296,6 +354,7 @@ emailForm.addEventListener("submit", async function(event) {
   }
 
   const email = emailInput.value.trim().toLowerCase();
+
   if (!emailInput.validity.valid || !email) {
     emailStatus.textContent = "Please enter a valid email address.";
     emailStatus.className = "form-status error";
@@ -311,9 +370,14 @@ emailForm.addEventListener("submit", async function(event) {
     const response = await fetch(FAUCETPAY_EMAIL_API, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({initData:tg.initData,faucetpay_email:email})
+      body: JSON.stringify({
+        initData: tg.initData,
+        faucetpay_email: email
+      })
     });
+
     const result = await response.json();
+
     if (!response.ok || result.ok !== true) {
       throw new Error(result.error || "Email registration failed.");
     }
@@ -321,17 +385,19 @@ emailForm.addEventListener("submit", async function(event) {
     emailRegisteredThisSession = true;
     registrationScreen.hidden = true;
     earnScreen.hidden = false;
-    emailInput.value = email;
-    emailStatus.textContent = "✓ FaucetPay email registered successfully: " + email;
-    emailStatus.className = "form-status success";
+
     showToast("FaucetPay email saved successfully.");
 
-    // Start passive ads only after the user has registered and entered the earning area.
-    // This is an impression-only format and is not connected to FaucetPay rewards.
     initializeInAppInterstitial();
 
-    await refreshMonetagCooldown();
-    await loadPaymentHistory();
+    await Promise.all([
+      refreshMonetagCooldown(),
+      loadPaymentHistory()
+    ]);
+
+    /* Prepare the first Popup session in the background. */
+    preparePopupSession();
+
   } catch (error) {
     emailStatus.textContent = error.message || "Unable to register email.";
     emailStatus.className = "form-status error";
@@ -341,21 +407,28 @@ emailForm.addEventListener("submit", async function(event) {
   }
 });
 
-/* MONETAG API REQUEST */
+/* GENERIC MONETAG REQUEST */
 async function monetagApiRequest(action, extra = {}) {
   const response = await fetch(MONETAG_COOLDOWN_API, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({initData:tg.initData,action,...extra})
+    body: JSON.stringify({
+      initData: tg.initData,
+      action,
+      ...extra
+    })
   });
+
   const result = await response.json();
+
   if (!response.ok || result.ok !== true) {
     throw new Error(result.message || result.error || "Monetag request failed.");
   }
+
   return result.result || result;
 }
 
-/* REFRESH COOLDOWN */
+/* COOLDOWN */
 let monetagTimerInterval = null;
 
 async function refreshMonetagCooldown() {
@@ -363,9 +436,10 @@ async function refreshMonetagCooldown() {
     if (!emailRegisteredThisSession) {
       monetagButton.disabled = true;
       monetagButton.textContent = "REGISTER EMAIL FIRST";
-      monetagStatus.textContent = "Register your FaucetPay email to unlock Monetag ads.";
+      monetagStatus.textContent = "Register your FaucetPay email first.";
       return;
     }
+
     if (!tg.initData) {
       monetagStatus.textContent = "Open Rapid Ads inside Telegram.";
       monetagButton.disabled = true;
@@ -380,16 +454,24 @@ async function refreshMonetagCooldown() {
       monetagTimerInterval = null;
     }
 
-    const dailyCount = Math.max(0, Math.min(100, Number(result.daily_count ?? 0)));
-    const dailyTarget = document.getElementById("monetagDailyTarget");
-    if (dailyTarget) dailyTarget.textContent = dailyCount + "/100 views";
+    const dailyCount = Math.max(
+      0,
+      Math.min(100, Number(result.daily_count ?? 0))
+    );
 
-    const dailyRemaining = Math.max(0, Number(result.daily_remaining ?? 0));
+    document.getElementById("monetagDailyTarget").textContent =
+      dailyCount + "/100 views";
+
+    const dailyRemaining = Math.max(
+      0,
+      Number(result.daily_remaining ?? 0)
+    );
+
     if (dailyRemaining <= 0) {
       monetagButton.disabled = true;
       monetagButton.textContent = "DAILY LIMIT REACHED";
       monetagStatus.textContent =
-        "You have reached your daily limit of 100 Monetag ads. Your limit resets at midnight UTC.";
+        "Your 100-ad daily limit has been reached. It resets at midnight UTC.";
       return;
     }
 
@@ -397,52 +479,135 @@ async function refreshMonetagCooldown() {
       if (remaining > 0) {
         monetagButton.disabled = true;
         monetagButton.textContent = "PLEASE WAIT " + remaining + "s";
-        monetagStatus.textContent = "Next advertisement available in " + remaining + " seconds.";
+        monetagStatus.textContent =
+          "Next advertisement available in " + remaining + " seconds.";
         remaining--;
       } else {
         if (monetagTimerInterval) clearInterval(monetagTimerInterval);
         monetagTimerInterval = null;
         monetagButton.disabled = false;
-        monetagButton.textContent = "▶ WATCH MONETAG AD";
+        monetagButton.textContent = "▶ WATCH INTERSTITIAL";
         monetagStatus.textContent = "Your next advertisement is ready!";
       }
     }
+
     updateCountdown();
-    if (monetagButton.disabled) monetagTimerInterval = setInterval(updateCountdown, 1000);
+
+    if (monetagButton.disabled) {
+      monetagTimerInterval = setInterval(updateCountdown, 1000);
+    }
+
   } catch (error) {
     monetagButton.disabled = true;
     monetagStatus.textContent = "Unable to check cooldown. Please try again.";
   }
 }
 
-/* MONETAG REGISTER */
+/* REGISTER INTERSTITIAL SESSION */
 async function registerMonetagWatch(ymid, reservationToken) {
-  if (!emailRegisteredThisSession) throw new Error("Please register your FaucetPay email first.");
-  if (!tg.initData) throw new Error("Please open Rapid Ads inside Telegram.");
-  if (!ymid || !reservationToken) throw new Error("Missing ad session details. Please try again.");
+  if (!emailRegisteredThisSession) {
+    throw new Error("Please register your FaucetPay email first.");
+  }
+
+  if (!tg.initData) {
+    throw new Error("Please open Rapid Ads inside Telegram.");
+  }
+
+  if (!ymid || !reservationToken) {
+    throw new Error("Missing ad session details.");
+  }
 
   const response = await fetch(MONETAG_REGISTER_API, {
     method: "POST",
     headers: {"Content-Type":"application/json"},
-    body: JSON.stringify({initData:tg.initData,ymid,reservation_token:reservationToken})
+    body: JSON.stringify({
+      initData: tg.initData,
+      ymid,
+      reservation_token: reservationToken
+    })
   });
+
   const result = await response.json();
+
   if (!response.ok || result.ok !== true) {
     throw new Error(result.message || result.error || "Unable to register ad.");
   }
+
   return result;
 }
 
-/* PAYMENT HISTORY: DISPLAY ONLY THE 10 MOST RECENT RECORDS */
+/* PAYMENT STATUS */
+async function getPaymentStatus(ymid) {
+  const response = await fetch(PAYMENT_STATUS_API, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      initData: tg.initData,
+      ymid
+    })
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || result.ok !== true) {
+    throw new Error(result.error || "Unable to check payment status.");
+  }
+
+  return result;
+}
+
+/* POLL FOR VERIFIED PAYMENT */
+async function pollPayment(ymid, rewardLabel) {
+  let paymentResult = null;
+
+  for (let attempt = 0; attempt < 20; attempt++) {
+    try {
+      paymentResult = await getPaymentStatus(ymid);
+
+      if (["PAID", "FAILED", "NOT_FOUND"].includes(paymentResult.status)) {
+        break;
+      }
+    } catch (error) {
+      console.log("Payment status check:", error);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  }
+
+  if (paymentResult && paymentResult.status === "PAID") {
+    const amount = (
+      Number(paymentResult.amount_units) / 100000000
+    ).toFixed(8);
+
+    showToast("🎉 " + amount + " " + paymentResult.currency +
+      " sent to your FaucetPay account!");
+
+    await loadPaymentHistory();
+
+  } else if (paymentResult && paymentResult.status === "FAILED") {
+    showToast("Payment failed. Please contact support.");
+    await loadPaymentHistory();
+
+  } else {
+    showToast(
+      rewardLabel + " is awaiting verification or payment. Check your history shortly."
+    );
+    await loadPaymentHistory();
+  }
+}
+
+/* PAYMENT HISTORY */
 async function loadPaymentHistory() {
   const historyMessage = document.getElementById("historyMessage");
   const historyList = document.getElementById("historyList");
 
   if (!emailRegisteredThisSession) {
-    historyMessage.textContent = "Register your FaucetPay email to view your payment history.";
+    historyMessage.textContent =
+      "Register your FaucetPay email to view payment history.";
     historyList.replaceChildren();
     return;
   }
+
   if (historyRequestInProgress) return;
 
   historyRequestInProgress = true;
@@ -455,17 +620,26 @@ async function loadPaymentHistory() {
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({initData:tg.initData})
     });
+
     const result = await response.json();
+
     if (!response.ok || result.ok !== true) {
       throw new Error(result.error || "Unable to load payment history.");
     }
 
-    const payments = Array.isArray(result.payments) ? result.payments : [];
-    payments.sort((a, b) => Number(b.created_at || 0) - Number(a.created_at || 0));
+    const payments = Array.isArray(result.payments)
+      ? result.payments
+      : [];
+
+    payments.sort((a, b) =>
+      Number(b.created_at || 0) - Number(a.created_at || 0)
+    );
+
     const recentPayments = payments.slice(0, MAX_HISTORY_ITEMS);
 
     if (recentPayments.length === 0) {
-      historyMessage.textContent = "No payment records yet. Verified payments will appear here.";
+      historyMessage.textContent =
+        "No payment records yet. Verified payments will appear here.";
       return;
     }
 
@@ -475,26 +649,37 @@ async function loadPaymentHistory() {
     recentPayments.forEach(payment => {
       const item = document.createElement("div");
       item.className = "history-item";
-      const amount = (Number(payment.amount_units) / 100000000).toFixed(8);
+
+      const amount = (
+        Number(payment.amount_units) / 100000000
+      ).toFixed(8);
+
       const date = new Date(Number(payment.created_at) * 1000);
       const status = String(payment.status || "UNKNOWN").toUpperCase();
 
       const title = document.createElement("strong");
       title.textContent = amount + " " + payment.currency;
+
       const statusText = document.createElement("div");
       statusText.textContent = "Status: " + status;
+
       const dateText = document.createElement("div");
-      dateText.textContent = isNaN(date.getTime()) ? "Date unavailable" : date.toLocaleString();
+      dateText.textContent = isNaN(date.getTime())
+        ? "Date unavailable"
+        : date.toLocaleString();
+
       const reference = document.createElement("div");
       reference.textContent = payment.faucetpay_reference
         ? "Reference: " + payment.faucetpay_reference
         : "Payment reference: Not available";
 
-      item.append(title,statusText,dateText,reference);
+      item.append(title, statusText, dateText, reference);
       historyList.appendChild(item);
     });
+
   } catch (error) {
-    historyMessage.textContent = error.message || "Unable to load payment history.";
+    historyMessage.textContent =
+      error.message || "Unable to load payment history.";
   } finally {
     historyRequestInProgress = false;
   }
@@ -503,22 +688,23 @@ async function loadPaymentHistory() {
 document.getElementById("refreshHistoryButton")
   .addEventListener("click", loadPaymentHistory);
 
-/* MONETAG WATCH BUTTON */
+/* REWARDED INTERSTITIAL BUTTON */
 monetagButton.addEventListener("click", async function() {
   if (monetagBusy) return;
 
-  if (!tg.initData || !tg.initDataUnsafe || !tg.initDataUnsafe.user ||
-      !tg.initDataUnsafe.user.id) {
+  if (!tg.initData || !tg.initDataUnsafe?.user?.id) {
     showToast("Please open Rapid Ads inside Telegram.");
     return;
   }
+
   if (!emailRegisteredThisSession) {
-    showToast("Please register your FaucetPay email for this session first.");
+    showToast("Register your FaucetPay email first.");
     emailInput.focus();
     return;
   }
+
   if (typeof window.show_12109194 !== "function") {
-    showToast("Monetag is not ready. Please try again.");
+    showToast("Monetag SDK is not ready.");
     return;
   }
 
@@ -533,84 +719,213 @@ monetagButton.addEventListener("click", async function() {
 
   try {
     const reservation = await monetagApiRequest("reserve_watch");
+
     if (!reservation.can_watch) {
       const remaining = Number(reservation.remaining_seconds || 60);
-      showToast("Please wait " + remaining + " seconds before watching again.");
+      showToast("Please wait " + remaining + " seconds.");
       return;
     }
 
     reservationToken = reservation.reservation_token;
-    ymid = "ra_" + Date.now() + "_" + Math.random().toString(36).substring(2,10);
-    await registerMonetagWatch(ymid,reservationToken);
+
+    ymid = "ra_" + Date.now() + "_" +
+      Math.random().toString(36).substring(2,10);
+
+    await registerMonetagWatch(ymid, reservationToken);
 
     sdkAttempted = true;
     monetagButton.textContent = "ADVERTISEMENT OPENED...";
-    const adResult = await window.show_12109194({
-      ymid:ymid,
-      requestVar:"rapid_ads_watch"
-    });
-    valuedEvent = Boolean(adResult && adResult.reward_event_type === "valued");
 
-    if (!valuedEvent) {
-      showToast("Ad session finished. Waiting for network verification.");
+    try {
+      const adResult = await window.show_12109194({
+        ymid: ymid,
+        requestVar: "rapid_ads_watch"
+      });
+
+      valuedEvent = Boolean(
+        adResult && adResult.reward_event_type === "valued"
+      );
+
+    } catch (sdkError) {
+      console.warn("Interstitial SDK verification:", sdkError);
+      showToast("Ad opened. Waiting for Monetag verification.");
     }
+
   } catch (error) {
-    showToast(error.message || "Something went wrong. Please try again.");
+    showToast(error.message || "Unable to start advertisement.");
+
   } finally {
     if (reservationToken) {
       try {
         await monetagApiRequest(
           sdkAttempted ? "finish_watch" : "cancel_watch",
-          {reservation_token:reservationToken,...(sdkAttempted && ymid ? {ymid} : {})}
+          {
+            reservation_token: reservationToken,
+            ...(sdkAttempted && ymid ? {ymid} : {})
+          }
         );
       } catch (cleanupError) {
-        console.log("Session cleanup:",cleanupError);
+        console.log("Session cleanup:", cleanupError);
       }
     }
 
-    if (valuedEvent && ymid) {
-      monetagButton.textContent = "CHECKING PAYMENT...";
-      let paymentResult = null;
-
-      for (let attempt = 0; attempt < 20; attempt++) {
-        try {
-          const response = await fetch(API_BASE + "/payment-status", {
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({initData:tg.initData,ymid})
-          });
-          const result = await response.json();
-          if (!response.ok || result.ok !== true) {
-            throw new Error(result.error || "Unable to check payment status.");
-          }
-          paymentResult = result;
-          if (["PAID","FAILED","NOT_FOUND"].includes(result.status)) break;
-        } catch (paymentError) {
-          console.log("Payment status check:",paymentError);
-        }
-        await new Promise(resolve => setTimeout(resolve,1500));
-      }
-
-      if (paymentResult && paymentResult.status === "PAID") {
-        const amount = (Number(paymentResult.amount_units) / 100000000).toFixed(4);
-        showToast("🎉 Payment Successful! " + amount + " " +
-          paymentResult.currency + " has been sent to your FaucetPay account.");
-
-        // Refresh the recent payment list automatically after confirmed payment.
-        await loadPaymentHistory();
-      } else if (paymentResult && paymentResult.status === "FAILED") {
-        showToast("Your ad was verified, but the FaucetPay payment failed. Please contact support.");
-        await loadPaymentHistory();
-      } else {
-        showToast("Your ad session was recorded. Payment verification is still pending. Check your payment history shortly.");
-        await loadPaymentHistory();
-      }
+    if (sdkAttempted && ymid) {
+      await pollPayment(ymid, "Interstitial reward");
     }
 
     monetagBusy = false;
     await refreshMonetagCooldown();
   }
 });
+
+/* PREPARE A REWARDED POPUP SESSION */
+async function preparePopupSession() {
+  if (!emailRegisteredThisSession || !tg.initData) return;
+  if (popupPreparing || readyPopupSession || popupBusy) return;
+
+  popupPreparing = true;
+  popupButton.disabled = true;
+  popupButton.textContent = "PREPARING POPUP...";
+  popupStatus.textContent = "Preparing a secure Popup session...";
+
+  try {
+    const response = await fetch(MONETAG_POPUP_PREPARE_API, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({initData:tg.initData})
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.ok !== true) {
+      throw new Error(
+        result.message || result.error || "Unable to prepare Popup."
+      );
+    }
+
+    const data = result.result || result;
+
+    if (!data.ymid) {
+      throw new Error("The server did not return a Popup session ID.");
+    }
+
+    readyPopupSession = {
+      ymid: data.ymid
+    };
+
+    const count = Math.max(
+      0,
+      Math.min(50, Number(data.daily_count ?? 0))
+    );
+
+    document.getElementById("popupDailyTarget").textContent =
+      count + "/50 views";
+
+    const remaining = Math.max(
+      0,
+      Number(data.daily_remaining ?? (50 - count))
+    );
+
+    if (remaining <= 0) {
+      readyPopupSession = null;
+      popupButton.disabled = true;
+      popupButton.textContent = "DAILY LIMIT REACHED";
+      popupStatus.textContent =
+        "Your daily Popup limit has been reached. It resets at midnight UTC.";
+      return;
+    }
+
+    popupButton.disabled = false;
+    popupButton.textContent = "▶ WATCH REWARDED POPUP";
+    popupStatus.textContent =
+      "Your Popup session is ready. Tap the button to open the advertisement.";
+
+  } catch (error) {
+    readyPopupSession = null;
+    popupButton.disabled = true;
+    popupButton.textContent = "RETRY PREPARATION";
+    popupStatus.textContent =
+      error.message || "Unable to prepare Popup session.";
+
+  } finally {
+    popupPreparing = false;
+  }
+}
+
+/* REWARDED POPUP BUTTON
+   IMPORTANT: The SDK is called synchronously inside the click handler.
+   Do not put an await or fetch before this SDK call. */
+popupButton.addEventListener("click", function() {
+  if (popupBusy) return;
+
+  if (!emailRegisteredThisSession || !tg.initData) {
+    showToast("Please register your FaucetPay email first.");
+    return;
+  }
+
+  if (!readyPopupSession) {
+    showToast("Popup session is not ready. Preparing now...");
+    preparePopupSession();
+    return;
+  }
+
+  if (typeof window.show_12109194 !== "function") {
+    showToast("Monetag SDK is not ready. Please try again.");
+    return;
+  }
+
+  const popupSession = readyPopupSession;
+  readyPopupSession = null;
+  popupBusy = true;
+
+  popupButton.disabled = true;
+  popupButton.textContent = "POPUP OPENED...";
+  popupStatus.textContent =
+    "Advertisement opened. Waiting for Monetag verification.";
+
+  let popupPromise;
+
+  /* Direct SDK invocation: preserve the user's click gesture. */
+  try {
+    popupPromise = window.show_12109194({
+      type: "pop",
+      ymid: popupSession.ymid,
+      requestVar: "rapid_ads_popup"
+    });
+  } catch (error) {
+    console.error("Popup SDK error:", error);
+    popupStatus.textContent =
+      "Popup attempt started. Waiting for network verification.";
+    popupPromise = Promise.reject(error);
+  }
+
+  /* Never treat SDK success or failure as proof of payment. */
+  Promise.resolve(popupPromise)
+    .then(result => {
+      console.log("Popup SDK response:", result);
+    })
+    .catch(error => {
+      console.warn("Popup SDK verification response:", error);
+    });
+
+  /* Prepare the next session separately, after the click-triggered call. */
+  setTimeout(() => {
+    preparePopupSession();
+  }, 1000);
+
+  /* The backend postback is authoritative. */
+  (async () => {
+    try {
+      await pollPayment(popupSession.ymid, "Popup reward");
+    } finally {
+      popupBusy = false;
+
+      if (!readyPopupSession) {
+        preparePopupSession();
+      }
+    }
+  })();
+});
 </script>
 </body>
-</html>
+      </html>
