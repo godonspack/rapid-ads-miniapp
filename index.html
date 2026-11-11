@@ -913,10 +913,10 @@ popupButton.addEventListener("click", function() {
   /* Preserve the user's direct click gesture. */
   try {
     popupPromise = window.show_12109194({
-      type: "pop",
-      ymid: popupSession.ymid,
-      requestVar: "12109194_rapid_ads_popup"
-    });
+  type: "pop",
+  ymid: popupSession.ymid,
+  requestVar: "rapid_ads_popup"
+});
   } catch (error) {
     console.error("Popup SDK error:", error);
     popupStatus.textContent =
