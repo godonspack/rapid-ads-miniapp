@@ -266,6 +266,7 @@ let historyRequestInProgress = false;
 let inAppInterstitialInitialized = false;
 let readyPopupSession = null;
 let popupPreparing = false;
+let popupCooldownInterval = null;  
 let monetagTimerInterval = null;
 
 /* Always request email again when the Mini App opens. */
@@ -803,11 +804,54 @@ monetagButton.addEventListener("click", async function() {
     await refreshMonetagCooldown();
   }
 });
+function startPopupCountdown(seconds) {
+  if (popupCooldownInterval) {
+    clearInterval(popupCooldownInterval);
+    popupCooldownInterval = null;
+  }
 
+  let remaining = Math.max(0, Number(seconds) || 0);
+
+  popupButton.disabled = true;
+
+  function update() {
+    if (remaining > 0) {
+      popupButton.disabled = true;
+      popupButton.textContent = "PLEASE WAIT " + remaining + "s";
+
+      popupStatus.textContent =
+        "Your next 0.0002 USDT claim is available in " +
+        remaining + " seconds.";
+
+      remaining--;
+      return;
+    }
+
+    clearInterval(popupCooldownInterval);
+    popupCooldownInterval = null;
+
+    popupButton.disabled = true;
+    popupButton.textContent = "PREPARING CLAIM...";
+    popupStatus.textContent = "Cooldown finished. Preparing your next claim...";
+
+    preparePopupSession();
+  }
+
+  update();
+
+  if (remaining >= 0 && popupButton.disabled) {
+    popupCooldownInterval = setInterval(update, 1000);
+  }
+}
 /* PREPARE POPUP CLAIM SESSION */
 async function preparePopupSession() {
   if (!emailRegisteredThisSession || !tg || !tg.initData) return;
   if (popupPreparing || readyPopupSession || popupBusy) return;
+
+  if (popupCooldownInterval) {
+    clearInterval(popupCooldownInterval);
+    popupCooldownInterval = null;
+  }
 
   popupPreparing = true;
   popupButton.disabled = true;
@@ -817,19 +861,54 @@ async function preparePopupSession() {
   try {
     const response = await fetch(MONETAG_POPUP_PREPARE_API, {
       method: "POST",
-      headers: {"Content-Type":"application/json"},
-      body: JSON.stringify({initData:tg.initData})
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({initData: tg.initData})
     });
 
     const result = await readResponse(response);
+    const data = result.result || result;
+
+    // Update daily counter whenever the server supplies it.
+    if (data.daily_count !== undefined) {
+      const count = Math.max(
+        0,
+        Math.min(50, Number(data.daily_count) || 0)
+      );
+
+      document.getElementById("popupDailyTarget").textContent =
+        count + "/50 claims";
+    }
+
+    // Handle cooldown without throwing away remaining_seconds.
+    if (
+      response.status === 429 &&
+      data.remaining_seconds !== undefined
+    ) {
+      readyPopupSession = null;
+
+      const dailyRemaining = Math.max(
+        0,
+        Number(data.daily_remaining ?? 50)
+      );
+
+      if (dailyRemaining <= 0) {
+        popupButton.disabled = true;
+        popupButton.textContent = "DAILY LIMIT REACHED";
+        popupStatus.textContent =
+          "Your 50 daily Popup claims have been used. The limit resets at midnight UTC.";
+        return;
+      }
+
+      startPopupCountdown(data.remaining_seconds);
+      return;
+    }
 
     if (!response.ok || result.ok !== true) {
       throw new Error(
-        result.message || result.error || "Unable to prepare Popup claim."
+        data.message || data.error ||
+        "Unable to prepare Popup claim."
       );
     }
-
-    const data = result.result || result;
 
     if (!data.ymid) {
       throw new Error("The server did not return a Popup session ID.");
@@ -847,12 +926,12 @@ async function preparePopupSession() {
     document.getElementById("popupDailyTarget").textContent =
       count + "/50 claims";
 
-    const remaining = Math.max(
+    const dailyRemaining = Math.max(
       0,
       Number(data.daily_remaining ?? (50 - count))
     );
 
-    if (remaining <= 0) {
+    if (dailyRemaining <= 0) {
       readyPopupSession = null;
       popupButton.disabled = true;
       popupButton.textContent = "DAILY LIMIT REACHED";
@@ -931,10 +1010,6 @@ popupButton.addEventListener("click", function() {
     .catch(error => {
       console.warn("Popup SDK response:", error);
     });
-
-  setTimeout(() => {
-    preparePopupSession();
-  }, 1000);
 
   /* Backend verification determines whether payment is made. */
   (async () => {
