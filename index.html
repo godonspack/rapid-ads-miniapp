@@ -267,20 +267,20 @@ main[hidden]{display:none!important}
     <div class="network-top">
       <div class="network-icon">📺</div>
       <div class="network-info">
-        <h3>Claim 0.0005 USDT</h3>
+        <h3>Claim 0.0003 USDT</h3>
         <p>Complete an eligible Interstitial advertisement</p>
       </div>
-      <div class="badge">0.0005 USDT</div>
+      <div class="badge">0.0003 USDT</div>
     </div>
 
     <div class="network-details">
-      <div class="detail">Reward<strong>0.0005 USDT</strong></div>
+      <div class="detail">Reward<strong>0.0003 USDT</strong></div>
       <div class="detail">Cooldown<strong>1 minute</strong></div>
       <div class="detail">Daily progress<strong id="monetagDailyTarget">0/100 claims</strong></div>
     </div>
 
     <button class="main-button" id="monetagWatchButton">
-      CLAIM 0.0005 USDT
+      CLAIM 0.0003 USDT
     </button>
 
     <div id="monetagStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
@@ -647,13 +647,13 @@ async function refreshMonetagCooldown() {
         monetagButton.disabled = true;
         monetagButton.textContent = "PLEASE WAIT " + remaining + "s";
         monetagStatus.textContent =
-          "Next 0.0005 USDT claim available in " + remaining + " seconds.";
+          "Next 0.0003 USDT claim available in " + remaining + " seconds.";
         remaining--;
       } else {
         if (monetagTimerInterval) clearInterval(monetagTimerInterval);
         monetagTimerInterval = null;
         monetagButton.disabled = false;
-        monetagButton.textContent = "CLAIM 0.0005 USDT";
+        monetagButton.textContent = "CLAIM 0.0003 USDT";
         monetagStatus.textContent = "Your next claim is ready!";
       }
     }
@@ -938,7 +938,7 @@ monetagButton.addEventListener("click", async function() {
     }
 
     if (sdkAttempted && ymid) {
-      await pollPayment(ymid, "0.0005 USDT claim");
+      await pollPayment(ymid, "0.0003 USDT claim");
     }
 
     monetagBusy = false;
