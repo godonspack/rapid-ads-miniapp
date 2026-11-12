@@ -1,9 +1,15 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080d16">
-<title>Rapid Ads</title><script src="https://telegram.org/js/telegram-web-app.js"></script><script src="https://libtl.com/sdk.js" data-zone="12109194" data-sdk="show_12109194"></script><style>
+<title>Rapid Ads</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://libtl.com/sdk.js" data-zone="12109194" data-sdk="show_12109194"></script>
+
+<style>
 :root {
   --bg:#080d16;--card:#111a28;--card2:#162235;
   --text:#f3f7ff;--muted:#8c9bb0;--green:#21e6a1;
@@ -109,13 +115,89 @@ body{
   padding:12px 18px;border-radius:12px;font-size:12px;display:none;
   z-index:1000;width:max-content;max-width:90%;text-align:center
 }
+
+/* PAYMENT SUCCESS POPUP */
+.payment-success-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:999999;
+  background:rgba(0,0,0,.80);
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+.payment-success-box{
+  width:100%;
+  max-width:360px;
+  background:#ffffff;
+  color:#17202a;
+  border-radius:22px;
+  padding:30px 22px;
+  text-align:center;
+  box-shadow:0 15px 50px rgba(0,0,0,.35);
+  animation:paymentSuccessPop .3s ease-out;
+}
+
+.payment-success-icon{
+  font-size:65px;
+  margin-bottom:12px;
+}
+
+.payment-success-box h2{
+  font-size:25px;
+  font-weight:800;
+  margin:8px 0 14px;
+  color:#16a34a;
+}
+
+.payment-success-box p{
+  font-size:19px;
+  line-height:1.6;
+  font-weight:600;
+  margin:0 0 25px;
+  overflow-wrap:anywhere;
+}
+
+#paymentSuccessOkay{
+  width:100%;
+  padding:15px;
+  border:0;
+  border-radius:12px;
+  background:#16a34a;
+  color:white;
+  font-size:18px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+#paymentSuccessOkay:active{
+  transform:scale(.97);
+}
+
+@keyframes paymentSuccessPop{
+  from{
+    opacity:0;
+    transform:scale(.8);
+  }
+  to{
+    opacity:1;
+    transform:scale(1);
+  }
+}
+
 main[hidden]{display:none!important}
 @media(max-width:360px){
   .network-details{flex-wrap:wrap}
   .network-details .detail{min-width:28%}
 }
-</style></head><body>
-<div class="container"><header class="header">
+</style>
+</head>
+
+<body>
+<div class="container">
+<header class="header">
   <div class="brand">
     <div class="logo">R</div>
     <div>
@@ -124,15 +206,21 @@ main[hidden]{display:none!important}
     </div>
   </div>
   <div class="status">● ONLINE</div>
-</header><main id="registrationScreen">
+</header>
+
+<main id="registrationScreen">
   <section class="hero">
     <div class="hero-label">Welcome to Rapid Ads</div>
     <h1>Watch Ads.<br>Earn Rewards.</h1>
     <p>Claim USDT rewards by completing eligible Monetag advertisements. Verified payments go directly to FaucetPay.</p>
-  </section>  <div class="section-title">
+  </section>
+
+  <div class="section-title">
     <h2>FaucetPay Account</h2>
     <span>Required</span>
-  </div>  <section class="email-card">
+  </div>
+
+  <section class="email-card">
     <div class="network-top">
       <div class="network-icon">📧</div>
       <div class="network-info">
@@ -140,34 +228,42 @@ main[hidden]{display:none!important}
         <p>Link your FaucetPay account</p>
       </div>
       <div class="badge">ACCOUNT</div>
-    </div><p class="email-description">
-  Enter the email address associated with your FaucetPay account.
-  You will be asked to enter it again when you reopen Rapid Ads.
-</p>
+    </div>
 
-<form id="faucetpayForm">
-  <input class="email-input" id="faucetpayEmail" type="email"
-    placeholder="Enter your FaucetPay email" maxlength="254"
-    autocomplete="email" required>
-  <button class="main-button" id="registerEmailButton" type="submit">
-    CONTINUE TO EARN
-  </button>
-</form>
+    <p class="email-description">
+      Enter the email address associated with your FaucetPay account.
+      You will be asked to enter it again when you reopen Rapid Ads.
+    </p>
 
-<div id="emailStatus" class="form-status" aria-live="polite">
-  Your FaucetPay email has not been entered in this session.
-</div>
+    <form id="faucetpayForm">
+      <input class="email-input" id="faucetpayEmail" type="email"
+        placeholder="Enter your FaucetPay email" maxlength="254"
+        autocomplete="email" required>
+      <button class="main-button" id="registerEmailButton" type="submit">
+        CONTINUE TO EARN
+      </button>
+    </form>
 
+    <div id="emailStatus" class="form-status" aria-live="polite">
+      Your FaucetPay email has not been entered in this session.
+    </div>
   </section>
-</main><main id="earnScreen" hidden>
+</main>
+
+<main id="earnScreen" hidden>
   <section class="hero">
     <div class="hero-label">Your earning dashboard</div>
     <h1>Claim USDT Rewards 🚀</h1>
     <p>Complete eligible Monetag advertisements and receive verified rewards directly through FaucetPay.</p>
-  </section>  <div class="section-title">
+  </section>
+
+  <div class="section-title">
     <h2>Available Claims</h2>
     <span>Monetag</span>
-  </div>  <!-- INTERSTITIAL CLAIM -->  <section class="network-card">
+  </div>
+
+  <!-- INTERSTITIAL CLAIM -->
+  <section class="network-card">
     <div class="network-top">
       <div class="network-icon">📺</div>
       <div class="network-info">
@@ -175,21 +271,25 @@ main[hidden]{display:none!important}
         <p>Complete an eligible Interstitial advertisement</p>
       </div>
       <div class="badge">0.0005 USDT</div>
-    </div><div class="network-details">
-  <div class="detail">Reward<strong>0.0005 USDT</strong></div>
-  <div class="detail">Cooldown<strong>1 minute</strong></div>
-  <div class="detail">Daily progress<strong id="monetagDailyTarget">0/100 claims</strong></div>
-</div>
+    </div>
 
-<button class="main-button" id="monetagWatchButton">
-  CLAIM 0.0005 USDT
-</button>
+    <div class="network-details">
+      <div class="detail">Reward<strong>0.0005 USDT</strong></div>
+      <div class="detail">Cooldown<strong>1 minute</strong></div>
+      <div class="detail">Daily progress<strong id="monetagDailyTarget">0/100 claims</strong></div>
+    </div>
 
-<div id="monetagStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
-  Checking claim availability...
-</div>
+    <button class="main-button" id="monetagWatchButton">
+      CLAIM 0.0005 USDT
+    </button>
 
-  </section>  <!-- POPUP CLAIM -->  <section class="network-card">
+    <div id="monetagStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
+      Checking claim availability...
+    </div>
+  </section>
+
+  <!-- POPUP CLAIM -->
+  <section class="network-card">
     <div class="network-top">
       <div class="network-icon">🪟</div>
       <div class="network-info">
@@ -197,26 +297,33 @@ main[hidden]{display:none!important}
         <p>Complete an eligible Popup advertisement</p>
       </div>
       <div class="badge">0.0002 USDT</div>
-    </div><div class="network-details">
-  <div class="detail">Reward<strong>0.0002 USDT</strong></div>
-  <div class="detail">Cooldown<strong>1 minute</strong></div>
-  <div class="detail">Daily progress<strong id="popupDailyTarget">0/50 claims</strong></div>
-</div>
+    </div>
 
-<button class="main-button" id="popupWatchButton" disabled>
-  PREPARING CLAIM...
-</button>
+    <div class="network-details">
+      <div class="detail">Reward<strong>0.0002 USDT</strong></div>
+      <div class="detail">Cooldown<strong>1 minute</strong></div>
+      <div class="detail">Daily progress<strong id="popupDailyTarget">0/50 claims</strong></div>
+    </div>
 
-<div id="popupStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
-  Preparing your Popup claim...
-</div>
+    <button class="main-button" id="popupWatchButton" disabled>
+      PREPARING CLAIM...
+    </button>
 
-  </section>  <div class="notice">
+    <div id="popupStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
+      Preparing your Popup claim...
+    </div>
+  </section>
+
+  <div class="notice">
     <strong>How rewards work:</strong> Rewards are sent directly to your registered FaucetPay account only after Monetag confirms an eligible event and the payment is successfully processed. Simply opening or closing an advertisement does not guarantee a reward.
-  </div>  <div class="section-title">
+  </div>
+
+  <div class="section-title">
     <h2>Payment History</h2>
     <span>Latest 10 payments</span>
-  </div>  <section class="history-card" id="paymentHistory">
+  </div>
+
+  <section class="history-card" id="paymentHistory">
     <div class="history-icon">🧾</div>
     <h3>Recent Payments</h3>
     <p id="historyMessage">Loading your payment history...</p>
@@ -224,9 +331,27 @@ main[hidden]{display:none!important}
     <button class="secondary-button" id="refreshHistoryButton" type="button">
       ↻ REFRESH HISTORY
     </button>
-  </section>  <div class="footer">Rapid Ads • Earn responsibly</div>
+  </section>
+
+  <div class="footer">Rapid Ads • Earn responsibly</div>
 </main>
-</div><div class="toast" id="toast" role="status"></div><script>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<!-- PAYMENT SUCCESS POPUP -->
+<div id="paymentSuccessModal" class="payment-success-overlay">
+  <div class="payment-success-box">
+    <div class="payment-success-icon">🎉</div>
+    <h2>Payment Successful!</h2>
+    <p id="paymentSuccessMessage">
+      Your payment has been sent successfully.
+    </p>
+    <button id="paymentSuccessOkay" type="button">OKAY</button>
+  </div>
+</div>
+
+<script>
 /* TELEGRAM */
 const tg = window.Telegram && window.Telegram.WebApp;
 
@@ -266,7 +391,7 @@ let historyRequestInProgress = false;
 let inAppInterstitialInitialized = false;
 let readyPopupSession = null;
 let popupPreparing = false;
-let popupCooldownInterval = null;  
+let popupCooldownInterval = null;
 let monetagTimerInterval = null;
 
 /* Always request email again when the Mini App opens. */
@@ -329,6 +454,20 @@ function showToast(message) {
   showToast.timer = setTimeout(() => {
     toast.style.display = "none";
   }, 4000);
+}
+
+/* PAYMENT SUCCESS POPUP */
+function showPaymentSuccessModal(message) {
+  const modal = document.getElementById("paymentSuccessModal");
+  const messageElement = document.getElementById("paymentSuccessMessage");
+  const okayButton = document.getElementById("paymentSuccessOkay");
+
+  messageElement.textContent = message;
+  modal.style.display = "flex";
+
+  okayButton.onclick = function() {
+    modal.style.display = "none";
+  };
 }
 
 /* PASSIVE IN-APP INTERSTITIAL */
@@ -612,8 +751,10 @@ async function pollPayment(ymid, rewardLabel) {
       Number(paymentResult.amount_units) / 100000000
     ).toFixed(8);
 
-    showToast("🎉 " + amount + " " + paymentResult.currency +
-      " sent to your FaucetPay account!");
+    showPaymentSuccessModal(
+      "🎉 " + amount + " " + paymentResult.currency +
+      " sent to your FaucetPay account!"
+    );
 
     await loadPaymentHistory();
 
@@ -804,6 +945,7 @@ monetagButton.addEventListener("click", async function() {
     await refreshMonetagCooldown();
   }
 });
+
 function startPopupCountdown(seconds) {
   if (popupCooldownInterval) {
     clearInterval(popupCooldownInterval);
@@ -843,6 +985,7 @@ function startPopupCountdown(seconds) {
     popupCooldownInterval = setInterval(update, 1000);
   }
 }
+
 /* PREPARE POPUP CLAIM SESSION */
 async function preparePopupSession() {
   if (!emailRegisteredThisSession || !tg || !tg.initData) return;
@@ -868,7 +1011,6 @@ async function preparePopupSession() {
     const result = await readResponse(response);
     const data = result.result || result;
 
-    // Update daily counter whenever the server supplies it.
     if (data.daily_count !== undefined) {
       const count = Math.max(
         0,
@@ -879,7 +1021,6 @@ async function preparePopupSession() {
         count + "/50 claims";
     }
 
-    // Handle cooldown without throwing away remaining_seconds.
     if (
       response.status === 429 &&
       data.remaining_seconds !== undefined
@@ -957,8 +1098,7 @@ async function preparePopupSession() {
   }
 }
 
-/* POPUP CLAIM BUTTON
-   SDK invocation is synchronous inside the click handler. */
+/* POPUP CLAIM BUTTON */
 popupButton.addEventListener("click", function() {
   if (popupBusy) return;
 
@@ -1059,7 +1199,6 @@ popupButton.addEventListener("click", function() {
     }
   }
 
-  // Listen for the user leaving and returning to the Mini App.
   document.addEventListener(
     "visibilitychange",
     handleVisibilityChange
@@ -1070,7 +1209,6 @@ popupButton.addEventListener("click", function() {
 
   let popupPromise;
 
-  /* Preserve the user's direct click gesture. */
   try {
     popupPromise = window.show_12109194({
       type: "pop",
@@ -1090,10 +1228,6 @@ popupButton.addEventListener("click", function() {
       console.warn("Popup SDK response:", error);
     });
 
-  /*
-   * Payment verification runs independently.
-   * It must NOT start another Popup session or cooldown.
-   */
   (async () => {
     try {
       await pollPayment(
@@ -1105,5 +1239,6 @@ popupButton.addEventListener("click", function() {
     }
   })();
 });
-</script></body>
+</script>
+</body>
   </html>
