@@ -982,24 +982,103 @@ popupButton.addEventListener("click", function() {
   readyPopupSession = null;
   popupBusy = true;
 
+  let popupWasAway = false;
+  let cooldownRequestStarted = false;
+  let listenersRemoved = false;
+
   popupButton.disabled = true;
   popupButton.textContent = "ADVERTISEMENT OPENED...";
   popupStatus.textContent =
-    "Advertisement opened. Waiting for Monetag verification.";
+    "Advertisement opened. Return to Rapid Ads after viewing it.";
+
+  function removeReturnListeners() {
+    if (listenersRemoved) return;
+    listenersRemoved = true;
+
+    document.removeEventListener(
+      "visibilitychange",
+      handleVisibilityChange
+    );
+
+    window.removeEventListener("blur", handleWindowBlur);
+    window.removeEventListener("focus", handleWindowFocus);
+  }
+
+  async function startCooldownAfterReturn() {
+    if (!popupWasAway || cooldownRequestStarted) return;
+
+    cooldownRequestStarted = true;
+    removeReturnListeners();
+
+    popupStatus.textContent =
+      "Welcome back! Starting your 60-second cooldown...";
+
+    try {
+      const result = await monetagApiRequest(
+        "finish_popup_watch",
+        { ymid: popupSession.ymid }
+      );
+
+      popupBusy = false;
+
+      const remaining = Math.max(
+        0,
+        Number(result.remaining_seconds) || 0
+      );
+
+      startPopupCountdown(remaining);
+
+    } catch (error) {
+      console.error("Popup cooldown error:", error);
+
+      popupBusy = false;
+      popupButton.disabled = true;
+      popupButton.textContent = "COOLDOWN ERROR";
+
+      popupStatus.textContent =
+        error.message ||
+        "Could not start your cooldown. Please refresh and try again.";
+    }
+  }
+
+  function handleVisibilityChange() {
+    if (document.visibilityState === "hidden") {
+      popupWasAway = true;
+    } else if (document.visibilityState === "visible") {
+      startCooldownAfterReturn();
+    }
+  }
+
+  function handleWindowBlur() {
+    popupWasAway = true;
+  }
+
+  function handleWindowFocus() {
+    if (popupWasAway) {
+      startCooldownAfterReturn();
+    }
+  }
+
+  // Listen for the user leaving and returning to the Mini App.
+  document.addEventListener(
+    "visibilitychange",
+    handleVisibilityChange
+  );
+
+  window.addEventListener("blur", handleWindowBlur);
+  window.addEventListener("focus", handleWindowFocus);
 
   let popupPromise;
 
   /* Preserve the user's direct click gesture. */
   try {
     popupPromise = window.show_12109194({
-  type: "pop",
-  ymid: popupSession.ymid,
-  requestVar: "rapid_ads_popup"
-});
+      type: "pop",
+      ymid: popupSession.ymid,
+      requestVar: "rapid_ads_popup"
+    });
   } catch (error) {
     console.error("Popup SDK error:", error);
-    popupStatus.textContent =
-      "Popup attempt started. Waiting for network verification.";
     popupPromise = Promise.reject(error);
   }
 
@@ -1011,16 +1090,18 @@ popupButton.addEventListener("click", function() {
       console.warn("Popup SDK response:", error);
     });
 
-  /* Backend verification determines whether payment is made. */
+  /*
+   * Payment verification runs independently.
+   * It must NOT start another Popup session or cooldown.
+   */
   (async () => {
     try {
-      await pollPayment(popupSession.ymid, "0.0002 USDT claim");
-    } finally {
-      popupBusy = false;
-
-      if (!readyPopupSession) {
-        preparePopupSession();
-      }
+      await pollPayment(
+        popupSession.ymid,
+        "0.0002 USDT claim"
+      );
+    } catch (error) {
+      console.error("Popup payment polling error:", error);
     }
   })();
 });
