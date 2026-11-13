@@ -747,6 +747,16 @@ async function pollPayment(ymid, rewardLabel) {
   const status = String(paymentResult?.status || "").toUpperCase();
 
   if (paymentResult && status === "PAID") {
+        // Immediately refresh Popup daily progress after successful payment.
+    if (paymentResult.daily_count !== undefined) {
+      const count = Math.max(
+        0,
+        Math.min(50, Number(paymentResult.daily_count) || 0)
+      );
+
+      document.getElementById("popupDailyTarget").textContent =
+        count + "/50 claims";
+    }
     const amount = (
       Number(paymentResult.amount_units) / 100000000
     ).toFixed(8);
