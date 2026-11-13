@@ -117,76 +117,6 @@ body{
 }
 
 
-/* REQUIRED RAPID ADS CHANNEL MEMBERSHIP */
-function openRapidAdsChannel() {
-  if (tg && typeof tg.openTelegramLink === "function") {
-    tg.openTelegramLink(CHANNEL_URL);
-  } else {
-    window.open(CHANNEL_URL, "_blank");
-  }
-}
-
-async function verifyChannelMembership() {
-  if (!tg || !tg.initData) {
-    channelStatus.textContent =
-      "Please open Rapid Ads inside Telegram to verify your membership.";
-    channelStatus.className = "form-status error";
-    return;
-  }
-
-  verifyChannelButton.disabled = true;
-  joinChannelButton.disabled = true;
-  verifyChannelButton.textContent = "VERIFYING...";
-  channelStatus.textContent =
-    "Checking your Telegram channel membership...";
-  channelStatus.className = "form-status";
-
-  try {
-    const response = await fetch(CHANNEL_MEMBERSHIP_API, {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({initData: tg.initData})
-    });
-
-    const result = await readResponse(response);
-
-    if (!response.ok || result.ok !== true) {
-      throw new Error(result.message || result.error ||
-        "Unable to verify channel membership.");
-    }
-
-    if (result.member === true && result.verified === true) {
-      channelGateScreen.hidden = true;
-      registrationScreen.hidden = false;
-      earnScreen.hidden = true;
-      emailRegisteredThisSession = false;
-      emailStatus.textContent =
-        "Your FaucetPay email has not been entered in this session.";
-      emailStatus.className = "form-status";
-      showToast("Channel membership verified successfully!");
-      return;
-    }
-
-    channelStatus.textContent =
-      "You have not joined the Rapid Ads channel yet. Please join first, then verify again.";
-    channelStatus.className = "form-status error";
-
-  } catch (error) {
-    channelStatus.textContent =
-      error.message || "Verification failed. Please try again.";
-    channelStatus.className = "form-status error";
-  } finally {
-    if (!channelGateScreen.hidden) {
-      verifyChannelButton.disabled = false;
-      joinChannelButton.disabled = false;
-      verifyChannelButton.textContent = "VERIFY MEMBERSHIP";
-    }
-  }
-}
-
-joinChannelButton.addEventListener("click", openRapidAdsChannel);
-verifyChannelButton.addEventListener("click", verifyChannelMembership);
-
 /* PAYMENT SUCCESS POPUP */
 .payment-success-overlay{
   display:none;
@@ -571,6 +501,77 @@ function showToast(message) {
     toast.style.display = "none";
   }, 4000);
 }
+
+/* REQUIRED RAPID ADS CHANNEL MEMBERSHIP */
+function openRapidAdsChannel() {
+  if (tg && typeof tg.openTelegramLink === "function") {
+    tg.openTelegramLink(CHANNEL_URL);
+  } else {
+    window.open(CHANNEL_URL, "_blank");
+  }
+}
+
+async function verifyChannelMembership() {
+  if (!tg || !tg.initData) {
+    channelStatus.textContent =
+      "Please open Rapid Ads inside Telegram to verify your membership.";
+    channelStatus.className = "form-status error";
+    return;
+  }
+
+  verifyChannelButton.disabled = true;
+  joinChannelButton.disabled = true;
+  verifyChannelButton.textContent = "VERIFYING...";
+  channelStatus.textContent =
+    "Checking your Telegram channel membership...";
+  channelStatus.className = "form-status";
+
+  try {
+    const response = await fetch(CHANNEL_MEMBERSHIP_API, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({initData: tg.initData})
+    });
+
+    const result = await readResponse(response);
+
+    if (!response.ok || result.ok !== true) {
+      throw new Error(result.message || result.error ||
+        "Unable to verify channel membership.");
+    }
+
+    if (result.member === true && result.verified === true) {
+      channelGateScreen.hidden = true;
+      registrationScreen.hidden = false;
+      earnScreen.hidden = true;
+      emailRegisteredThisSession = false;
+      emailStatus.textContent =
+        "Your FaucetPay email has not been entered in this session.";
+      emailStatus.className = "form-status";
+      showToast("Channel membership verified successfully!");
+      return;
+    }
+
+    channelStatus.textContent =
+      "You have not joined the Rapid Ads channel yet. Please join first, then verify again.";
+    channelStatus.className = "form-status error";
+
+  } catch (error) {
+    channelStatus.textContent =
+      error.message || "Verification failed. Please try again.";
+    channelStatus.className = "form-status error";
+  } finally {
+    if (!channelGateScreen.hidden) {
+      verifyChannelButton.disabled = false;
+      joinChannelButton.disabled = false;
+      verifyChannelButton.textContent = "VERIFY MEMBERSHIP";
+    }
+  }
+}
+
+joinChannelButton.addEventListener("click", openRapidAdsChannel);
+verifyChannelButton.addEventListener("click", verifyChannelMembership);
+
 
 /* PAYMENT SUCCESS POPUP */
 function showPaymentSuccessModal(message) {
