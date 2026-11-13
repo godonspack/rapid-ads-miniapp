@@ -116,6 +116,77 @@ body{
   z-index:1000;width:max-content;max-width:90%;text-align:center
 }
 
+
+/* REQUIRED RAPID ADS CHANNEL MEMBERSHIP */
+function openRapidAdsChannel() {
+  if (tg && typeof tg.openTelegramLink === "function") {
+    tg.openTelegramLink(CHANNEL_URL);
+  } else {
+    window.open(CHANNEL_URL, "_blank");
+  }
+}
+
+async function verifyChannelMembership() {
+  if (!tg || !tg.initData) {
+    channelStatus.textContent =
+      "Please open Rapid Ads inside Telegram to verify your membership.";
+    channelStatus.className = "form-status error";
+    return;
+  }
+
+  verifyChannelButton.disabled = true;
+  joinChannelButton.disabled = true;
+  verifyChannelButton.textContent = "VERIFYING...";
+  channelStatus.textContent =
+    "Checking your Telegram channel membership...";
+  channelStatus.className = "form-status";
+
+  try {
+    const response = await fetch(CHANNEL_MEMBERSHIP_API, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({initData: tg.initData})
+    });
+
+    const result = await readResponse(response);
+
+    if (!response.ok || result.ok !== true) {
+      throw new Error(result.message || result.error ||
+        "Unable to verify channel membership.");
+    }
+
+    if (result.member === true && result.verified === true) {
+      channelGateScreen.hidden = true;
+      registrationScreen.hidden = false;
+      earnScreen.hidden = true;
+      emailRegisteredThisSession = false;
+      emailStatus.textContent =
+        "Your FaucetPay email has not been entered in this session.";
+      emailStatus.className = "form-status";
+      showToast("Channel membership verified successfully!");
+      return;
+    }
+
+    channelStatus.textContent =
+      "You have not joined the Rapid Ads channel yet. Please join first, then verify again.";
+    channelStatus.className = "form-status error";
+
+  } catch (error) {
+    channelStatus.textContent =
+      error.message || "Verification failed. Please try again.";
+    channelStatus.className = "form-status error";
+  } finally {
+    if (!channelGateScreen.hidden) {
+      verifyChannelButton.disabled = false;
+      joinChannelButton.disabled = false;
+      verifyChannelButton.textContent = "VERIFY MEMBERSHIP";
+    }
+  }
+}
+
+joinChannelButton.addEventListener("click", openRapidAdsChannel);
+verifyChannelButton.addEventListener("click", verifyChannelMembership);
+
 /* PAYMENT SUCCESS POPUP */
 .payment-success-overlay{
   display:none;
@@ -188,6 +259,7 @@ body{
 }
 
 main[hidden]{display:none!important}
+#channelGateScreen[hidden]{display:none!important}
 @media(max-width:360px){
   .network-details{flex-wrap:wrap}
   .network-details .detail{min-width:28%}
@@ -207,6 +279,43 @@ main[hidden]{display:none!important}
   </div>
   <div class="status">● ONLINE</div>
 </header>
+
+<main id="channelGateScreen" hidden>
+  <section class="hero">
+    <div class="hero-label">Welcome to Rapid Ads</div>
+    <h1>Join Our Telegram Channel 🚀</h1>
+    <p>
+      Before accessing Rapid Ads, please join our official Telegram
+      channel. This is a one-time verification.
+    </p>
+  </section>
+
+  <section class="email-card">
+    <div class="network-top">
+      <div class="network-icon">📢</div>
+      <div class="network-info">
+        <h3>Rapid Ads Official Channel</h3>
+        <p>@rapidads_channel</p>
+      </div>
+      <div class="badge">REQUIRED</div>
+    </div>
+
+    <p class="email-description">
+      Join our official channel to receive Rapid Ads announcements
+      and updates. After joining, return here and verify your membership.
+    </p>
+
+    <button class="main-button" id="joinChannelButton" type="button">
+      JOIN RAPID ADS CHANNEL
+    </button>
+    <button class="secondary-button" id="verifyChannelButton" type="button">
+      VERIFY MEMBERSHIP
+    </button>
+    <div id="channelStatus" class="form-status" aria-live="polite">
+      Checking your channel membership...
+    </div>
+  </section>
+</main>
 
 <main id="registrationScreen">
   <section class="hero">
@@ -368,6 +477,8 @@ const MONETAG_COOLDOWN_API = API_BASE + "/monetag-cooldown-start";
 const MONETAG_POPUP_PREPARE_API = API_BASE + "/monetag-popup-prepare";
 const PAYMENT_HISTORY_API = API_BASE + "/payment-history";
 const PAYMENT_STATUS_API = API_BASE + "/payment-status";
+const CHANNEL_MEMBERSHIP_API = API_BASE + "/channel-membership";
+const CHANNEL_URL = "https://t.me/rapidads_channel";
 
 const MAX_HISTORY_ITEMS = 10;
 
@@ -381,6 +492,10 @@ const emailInput = document.getElementById("faucetpayEmail");
 const emailButton = document.getElementById("registerEmailButton");
 const emailStatus = document.getElementById("emailStatus");
 
+const channelGateScreen = document.getElementById("channelGateScreen");
+const joinChannelButton = document.getElementById("joinChannelButton");
+const verifyChannelButton = document.getElementById("verifyChannelButton");
+const channelStatus = document.getElementById("channelStatus");
 const registrationScreen = document.getElementById("registrationScreen");
 const earnScreen = document.getElementById("earnScreen");
 
@@ -394,8 +509,9 @@ let popupPreparing = false;
 let popupCooldownInterval = null;
 let monetagTimerInterval = null;
 
-/* Always request email again when the Mini App opens. */
-registrationScreen.hidden = false;
+/* Check channel access first. Email is still requested each app session. */
+channelGateScreen.hidden = false;
+registrationScreen.hidden = true;
 earnScreen.hidden = true;
 
 /* SAFE RESPONSE PARSING */
@@ -1249,6 +1365,7 @@ popupButton.addEventListener("click", function() {
     }
   })();
 });
+verifyChannelMembership();
 </script>
 </body>
   </html>
