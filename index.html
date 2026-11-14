@@ -552,8 +552,8 @@ async function verifyChannelMembership() {
       return;
     }
 
-    channelStatus.textContent =
-      "You have not joined the Rapid Ads channel yet. Please join first, then verify again.";
+    channelStatus.textContent = result.message ||
+      "You are not currently a member of the Rapid Ads channel. Please join or rejoin, then verify again.";
     channelStatus.className = "form-status error";
 
   } catch (error) {
