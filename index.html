@@ -353,6 +353,32 @@ main[hidden]{display:none!important}
     </div>
   </section>
 
+
+  <!-- TELEGA.IO REVENUE-ONLY AD -->
+  <section class="network-card" id="telegaAdCard">
+    <div class="network-top">
+      <div class="network-icon">📣</div>
+      <div class="network-info">
+        <h3>Sponsored Advertisement</h3>
+        <p>Support Rapid Ads by viewing a Telega.io advertisement.</p>
+      </div>
+      <div class="badge">REVENUE ONLY</div>
+    </div>
+
+    <div class="network-details">
+      <div class="detail">Network<strong>Telega.io</strong></div>
+      <div class="detail">User reward<strong>None</strong></div>
+      <div class="detail">Purpose<strong>Support Rapid Ads</strong></div>
+    </div>
+
+    <button class="secondary-button" id="telegaWatchButton" type="button">
+      VIEW SPONSORED AD
+    </button>
+    <div id="telegaStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
+      Telega.io ads provide additional revenue for Rapid Ads. They do not earn user rewards.
+    </div>
+  </section>
+
   <div class="notice">
     <strong>How rewards work:</strong> Rewards are sent directly to your registered FaucetPay account only after Monetag confirms an eligible event and the payment is successfully processed. Simply opening or closing an advertisement does not guarantee a reward.
   </div>
@@ -390,6 +416,8 @@ main[hidden]{display:none!important}
   </div>
 </div>
 
+<script src="https://inapp.telega.io/sdk/v1/sdk.js"></script>
+
 <script>
 /* TELEGRAM */
 const tg = window.Telegram && window.Telegram.WebApp;
@@ -409,6 +437,10 @@ const PAYMENT_HISTORY_API = API_BASE + "/payment-history";
 const PAYMENT_STATUS_API = API_BASE + "/payment-status";
 const CHANNEL_MEMBERSHIP_API = API_BASE + "/channel-membership";
 const CHANNEL_URL = "https://t.me/rapidads_channel";
+
+// Telega.io is a separate revenue-only network. It never creates user rewards.
+const TELEGA_MINIAPP_TOKEN = "35a12a81-d6c1-44a0-b0a9-ba488d36ab71";
+const TELEGA_AD_BLOCK_UUID = "06de717a-0155-4204-bb8e-a63af37421f0";
 
 const MAX_HISTORY_ITEMS = 10;
 
@@ -430,6 +462,8 @@ const registrationScreen = document.getElementById("registrationScreen");
 const earnScreen = document.getElementById("earnScreen");
 
 let monetagBusy = false;
+let telegaAdsController = null;
+let telegaAdBusy = false;
 let popupBusy = false;
 let emailRegisteredThisSession = false;
 let historyRequestInProgress = false;
@@ -501,6 +535,47 @@ function showToast(message) {
     toast.style.display = "none";
   }, 4000);
 }
+
+
+/* TELEGA.IO REVENUE-ONLY ADS — NO USER REWARD OR FAUCETPAY PAYMENT */
+async function showTelegaAd() {
+  const button = document.getElementById("telegaWatchButton");
+  const status = document.getElementById("telegaStatus");
+
+  if (telegaAdBusy) return;
+  telegaAdBusy = true;
+  button.disabled = true;
+  button.textContent = "LOADING AD...";
+  status.textContent = "Requesting a Telega.io advertisement...";
+
+  try {
+    if (!window.TelegaIn?.AdsController?.create_miniapp) {
+      throw new Error("Telega.io ad service is not ready. Please try again shortly.");
+    }
+
+    if (!telegaAdsController) {
+      telegaAdsController = window.TelegaIn.AdsController.create_miniapp({
+        token: TELEGA_MINIAPP_TOKEN
+      });
+    }
+
+    await telegaAdsController.ad_show({
+      adBlockUuid: TELEGA_AD_BLOCK_UUID
+    });
+
+    status.textContent = "Telega.io ad request completed. No user reward is issued for these ads.";
+  } catch (error) {
+    console.warn("Telega.io ad request failed:", error);
+    status.textContent = error?.message || "No Telega.io ad is available right now. Please try again later.";
+  } finally {
+    telegaAdBusy = false;
+    button.disabled = false;
+    button.textContent = "VIEW SPONSORED AD";
+  }
+}
+
+document.getElementById("telegaWatchButton")
+  .addEventListener("click", showTelegaAd);
 
 /* REQUIRED RAPID ADS CHANNEL MEMBERSHIP */
 function openRapidAdsChannel() {
