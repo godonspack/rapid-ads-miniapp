@@ -354,30 +354,9 @@ main[hidden]{display:none!important}
   </section>
 
 
-  <!-- TELEGA.IO REVENUE-ONLY AD -->
-  <section class="network-card" id="telegaAdCard">
-    <div class="network-top">
-      <div class="network-icon">📣</div>
-      <div class="network-info">
-        <h3>Sponsored Advertisement</h3>
-        <p>Support Rapid Ads by viewing a Telega.io advertisement.</p>
-      </div>
-      <div class="badge">REVENUE ONLY</div>
-    </div>
-
-    <div class="network-details">
-      <div class="detail">Network<strong>Telega.io</strong></div>
-      <div class="detail">User reward<strong>None</strong></div>
-      <div class="detail">Purpose<strong>Support Rapid Ads</strong></div>
-    </div>
-
-    <button class="secondary-button" id="telegaWatchButton" type="button">
-      VIEW SPONSORED AD
-    </button>
-    <div id="telegaStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
-      Telega.io ads provide additional revenue for Rapid Ads. They do not earn user rewards.
-    </div>
-  </section>
+  <div id="telegaStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
+    After a successful Monetag Interstitial claim, Rapid Ads may automatically show an additional Telega.io sponsored advertisement. Telega.io ads do not provide an extra user reward.
+  </div>
 
   <div class="notice">
     <strong>How rewards work:</strong> Rewards are sent directly to your registered FaucetPay account only after Monetag confirms an eligible event and the payment is successfully processed. Simply opening or closing an advertisement does not guarantee a reward.
@@ -537,20 +516,17 @@ function showToast(message) {
 }
 
 
-/* TELEGA.IO REVENUE-ONLY ADS — NO USER REWARD OR FAUCETPAY PAYMENT */
+/* TELEGA.IO REVENUE-ONLY ADS — AUTO-TRIGGERED AFTER A PAID INTERSTITIAL CLAIM */
 async function showTelegaAd() {
-  const button = document.getElementById("telegaWatchButton");
   const status = document.getElementById("telegaStatus");
 
   if (telegaAdBusy) return;
   telegaAdBusy = true;
-  button.disabled = true;
-  button.textContent = "LOADING AD...";
-  status.textContent = "Requesting a Telega.io advertisement...";
+  status.textContent = "Your Monetag reward is confirmed. Checking for a Telega.io sponsored advertisement...";
 
   try {
     if (!window.TelegaIn?.AdsController?.create_miniapp) {
-      throw new Error("Telega.io ad service is not ready. Please try again shortly.");
+      throw new Error("Telega.io ad service is not ready.");
     }
 
     if (!telegaAdsController) {
@@ -563,19 +539,14 @@ async function showTelegaAd() {
       adBlockUuid: TELEGA_AD_BLOCK_UUID
     });
 
-    status.textContent = "Telega.io ad request completed. No user reward is issued for these ads.";
+    status.textContent = "Telega.io ad request finished. No additional user reward is issued.";
   } catch (error) {
-    console.warn("Telega.io ad request failed:", error);
-    status.textContent = error?.message || "No Telega.io ad is available right now. Please try again later.";
+    console.warn("Automatic Telega.io ad request failed:", error);
+    status.textContent = "No Telega.io advertisement is available right now. You can continue; your Monetag reward is unaffected.";
   } finally {
     telegaAdBusy = false;
-    button.disabled = false;
-    button.textContent = "VIEW SPONSORED AD";
   }
 }
-
-document.getElementById("telegaWatchButton")
-  .addEventListener("click", showTelegaAd);
 
 /* REQUIRED RAPID ADS CHANNEL MEMBERSHIP */
 function openRapidAdsChannel() {
@@ -917,7 +888,7 @@ async function getPaymentStatus(ymid) {
 }
 
 /* PAYMENT POLLING */
-async function pollPayment(ymid, rewardLabel) {
+async function pollPayment(ymid, rewardLabel, triggerTelegaAfterPaid = false) {
   let paymentResult = null;
 
   for (let attempt = 0; attempt < 20; attempt++) {
@@ -952,6 +923,13 @@ async function pollPayment(ymid, rewardLabel) {
     const amount = (
       Number(paymentResult.amount_units) / 100000000
     ).toFixed(8);
+
+    // Telega.io is revenue-only and is attempted only after the backend
+    // confirms that this Monetag Interstitial payment is PAID.
+    // It never changes the Monetag reward or creates a second user payout.
+    if (triggerTelegaAfterPaid) {
+      await showTelegaAd();
+    }
 
     showPaymentSuccessModal(
       "🎉 " + amount + " " + paymentResult.currency +
@@ -1140,7 +1118,7 @@ monetagButton.addEventListener("click", async function() {
     }
 
     if (sdkAttempted && ymid) {
-      await pollPayment(ymid, "0.0003 USDT claim");
+      await pollPayment(ymid, "0.0003 USDT claim", true);
     }
 
     monetagBusy = false;
