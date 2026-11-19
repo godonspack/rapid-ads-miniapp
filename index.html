@@ -526,7 +526,7 @@ function initializeLiteBits() {
   }
 }
 
-  /* INITIALIZE TELEMONIX */
+  /* INITIALIZE TELEMONIX REVENUE ADS */
 function initializeTelemonix() {
   if (telemonixAds) return true;
 
@@ -545,13 +545,54 @@ function initializeTelemonix() {
     });
 
     return !!telemonixAds;
+
   } catch (error) {
     console.error("TELEMONIX initialization error:", error);
     return false;
   }
 }
 
-/* LITEBITS WATCH BUTTON */
+/* SHOW TELEMONIX REVENUE AD AFTER PAID POPUP */
+async function showTelemonixRevenueAd() {
+  if (telemonixBusy) return;
+
+  telemonixBusy = true;
+
+  const status = document.getElementById("popupStatus");
+
+  status.textContent =
+    "Your Monetag Popup reward is confirmed. Loading an additional TELEMONIX advertisement...";
+
+  try {
+    if (!initializeTelemonix()) {
+      throw new Error("TELEMONIX SDK is not ready.");
+    }
+
+    const result = await telemonixAds.show();
+
+    if (result?.noAds === true) {
+      status.textContent =
+        "Your Monetag reward is safe. No additional TELEMONIX advertisement is available right now.";
+      return;
+    }
+
+    status.textContent =
+      "Additional TELEMONIX advertisement finished. No extra user reward is issued.";
+
+    console.log("TELEMONIX revenue ad result:", result);
+
+  } catch (error) {
+    console.warn("TELEMONIX revenue ad error:", error);
+
+    status.textContent =
+      "Your Monetag reward is unaffected. TELEMONIX is temporarily unavailable.";
+
+  } finally {
+    telemonixBusy = false;
+  }
+}
+
+/* LITEBITS WATCH BUTTON — STANDALONE */
 litebitsButton.addEventListener("click", async function() {
   if (litebitsBusy) return;
 
@@ -581,31 +622,25 @@ litebitsButton.addEventListener("click", async function() {
     const result = await litebitsAds.show();
 
     if (result?.noFill === true || result?.noAds === true) {
-  await showTelemonixFallback();
+      litebitsStatus.textContent =
+        "No LiteBits advertisement is available right now. Please try again later.";
 
-} else if (result.fallback) {
-  litebitsStatus.textContent =
-    "An alternative network displayed an advertisement. No LiteBits reward was created.";
-    } else if (result.verified) {
+    } else if (result?.verified === true) {
       litebitsStatus.textContent =
         "View verified. Waiting for reward processing.";
+
     } else {
       litebitsStatus.textContent =
         "Advertisement completed, but this view was not eligible for a reward.";
     }
 
   } catch (error) {
-  console.warn("LiteBits advertisement error:", error);
+    console.warn("LiteBits advertisement error:", error);
 
-  if (
-    String(error?.code || "").toUpperCase() === "NO_FILL"
-  ) {
-    await showTelemonixFallback();
-
-  } else {
     litebitsStatus.textContent =
-      "Unable to show LiteBits advertisement. Please try again.";
-  }
+      String(error?.code || "").toUpperCase() === "NO_FILL"
+        ? "No LiteBits advertisement is available right now. Please try again later."
+        : "Unable to show LiteBits advertisement. Please try again.";
 
   } finally {
     litebitsBusy = false;
