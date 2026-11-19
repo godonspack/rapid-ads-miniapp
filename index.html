@@ -1114,7 +1114,12 @@ async function getPaymentStatus(ymid) {
 }
 
 /* PAYMENT POLLING */
-async function pollPayment(ymid, rewardLabel, triggerTelegaAfterPaid = false) {
+async function pollPayment(
+  ymid,
+  rewardLabel,
+  triggerTelegaAfterPaid = false,
+  triggerTelemonixAfterPaid = false
+) {
   let paymentResult = null;
 
   for (let attempt = 0; attempt < 20; attempt++) {
@@ -1154,8 +1159,12 @@ async function pollPayment(ymid, rewardLabel, triggerTelegaAfterPaid = false) {
     // confirms that this Monetag Interstitial payment is PAID.
     // It never changes the Monetag reward or creates a second user payout.
     if (triggerTelegaAfterPaid) {
-      await showTelegaAd();
-    }
+  await showTelegaAd();
+}
+
+if (triggerTelemonixAfterPaid) {
+  await showTelemonixRevenueAd();
+}
 
     showPaymentSuccessModal(
       "🎉 " + amount + " " + paymentResult.currency +
@@ -1637,9 +1646,11 @@ popupButton.addEventListener("click", function() {
   (async () => {
     try {
       await pollPayment(
-        popupSession.ymid,
-        "0.0002 USDT claim"
-      );
+  popupSession.ymid,
+  "0.0002 USDT claim",
+  false,
+  true
+);
     } catch (error) {
       console.error("Popup payment polling error:", error);
     }
