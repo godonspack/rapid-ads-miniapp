@@ -454,6 +454,18 @@ const TELEGA_AD_BLOCK_UUID = "06de717a-0155-4204-bb8e-a63af37421f0";
 
 const MAX_HISTORY_ITEMS = 10;
 
+  /* TELEMONIX PROMOTIONAL FALLBACK */
+const TELEMONIX_APP_CODE = "APP-7727419E";
+const TELEMONIX_BLOCK_ID = "1121869712";
+
+const TELEMONIX_PROMO_CLAIM_API =
+  API_BASE + "/telemonix-promo-claim";
+
+const TELEMONIX_PROMO_REWARD = "0.0001 USDT";
+
+let telemonixAds = null;
+let telemonixBusy = false;
+
   /* LITEBITS CONFIGURATION */
 const LITEBITS_API_KEY = "lba_dec4f3dd02423046ccbe86ca7699c581";
 
@@ -517,6 +529,143 @@ function initializeLiteBits() {
   }
 }
 
+  /* INITIALIZE TELEMONIX */
+function initializeTelemonix() {
+  if (telemonixAds) return true;
+
+  if (
+    typeof window.TelemonixAds === "undefined" ||
+    typeof window.TelemonixAds.init !== "function"
+  ) {
+    console.warn("TELEMONIX SDK is not ready.");
+    return false;
+  }
+
+  try {
+    telemonixAds = window.TelemonixAds.init({
+      appCode: TELEMONIX_APP_CODE,
+      blockId: TELEMONIX_BLOCK_ID
+    });
+
+    return !!telemonixAds;
+  } catch (error) {
+    console.error("TELEMONIX initialization error:", error);
+    return false;
+  }
+}
+
+/* SUBMIT TELEMONIX PROMOTIONAL CLAIM */
+async function submitTelemonixPromoClaim() {
+  if (!tg || !tg.initData) {
+    throw new Error("Please open Rapid Ads inside Telegram.");
+  }
+
+  const attemptId =
+    "tm_" + crypto.randomUUID();
+
+  const response = await fetch(TELEMONIX_PROMO_CLAIM_API, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      initData: tg.initData,
+      attempt_id: attemptId
+    })
+  });
+
+  const result = await readResponse(response);
+
+  if (!response.ok || result.ok !== true) {
+    throw new Error(
+      result.message ||
+      result.error ||
+      "Promotional claim could not be processed."
+    );
+  }
+
+  return result;
+}
+
+/* SHOW TELEMONIX FALLBACK */
+async function showTelemonixFallback() {
+  if (telemonixBusy) return;
+
+  telemonixBusy = true;
+
+  litebitsStatus.textContent =
+    "LiteBits has no available advertisement. Checking TELEMONIX...";
+
+  try {
+    if (!initializeTelemonix()) {
+      throw new Error("TELEMONIX is not ready. Please try again later.");
+    }
+
+    litebitsStatus.textContent =
+      "Loading a TELEMONIX rewarded advertisement...";
+
+    const result = await telemonixAds.show();
+
+    if (result?.noAds === true) {
+      litebitsStatus.textContent =
+        "No TELEMONIX advertisement is available right now. Please try again later.";
+      return;
+    }
+
+    if (result?.completed !== true) {
+      litebitsStatus.textContent =
+        result?.error
+          ? "TELEMONIX could not complete the advertisement: " + result.error
+          : "The advertisement was not completed. No promotional claim was submitted.";
+      return;
+    }
+
+    litebitsStatus.textContent =
+      "Advertisement completed. Processing your promotional claim...";
+
+    const claim = await submitTelemonixPromoClaim();
+
+    const status = String(claim.status || "").toUpperCase();
+
+    if (status === "PAID") {
+      litebitsStatus.textContent =
+        "Your TELEMONIX promotional claim was paid: " +
+        TELEMONIX_PROMO_REWARD + ".";
+
+      showPaymentSuccessModal(
+        "Your " + TELEMONIX_PROMO_REWARD +
+        " promotional payment was sent to your FaucetPay account!"
+      );
+
+      await loadPaymentHistory();
+
+    } else if (status === "UNKNOWN" || status === "PROCESSING") {
+      litebitsStatus.textContent =
+        "Your promotional payment is " + status +
+        ". It will not be automatically retried. Please contact support for reconciliation.";
+
+    } else if (status === "FAILED") {
+      litebitsStatus.textContent =
+        "Your promotional payment failed. This claim cannot be retried today.";
+
+    } else {
+      litebitsStatus.textContent =
+        "Claim response received. Status: " +
+        (status || "PENDING") + ".";
+    }
+
+  } catch (error) {
+    console.error("TELEMONIX fallback error:", error);
+
+    litebitsStatus.textContent =
+      error.message ||
+      "TELEMONIX is temporarily unavailable. Please try again later.";
+
+  } finally {
+    telemonixBusy = false;
+  }
+}
+
 /* LITEBITS WATCH BUTTON */
 litebitsButton.addEventListener("click", async function() {
   if (litebitsBusy) return;
@@ -546,9 +695,12 @@ litebitsButton.addEventListener("click", async function() {
   try {
     const result = await litebitsAds.show();
 
-    if (result.fallback) {
-      litebitsStatus.textContent =
-        "An alternative network displayed an advertisement. No LiteBits reward was created.";
+    if (result?.noFill === true || result?.noAds === true) {
+  await showTelemonixFallback();
+
+} else if (result.fallback) {
+  litebitsStatus.textContent =
+    "An alternative network displayed an advertisement. No LiteBits reward was created.";
     } else if (result.verified) {
       litebitsStatus.textContent =
         "View verified. Waiting for reward processing.";
@@ -560,14 +712,15 @@ litebitsButton.addEventListener("click", async function() {
   } catch (error) {
   console.warn("LiteBits advertisement error:", error);
 
-  const retryIn = Number(error.retryIn || 0);
+  if (
+    String(error?.code || "").toUpperCase() === "NO_FILL"
+  ) {
+    await showTelemonixFallback();
 
-  litebitsStatus.textContent =
-    error.code === "NO_FILL"
-      ? retryIn > 0
-        ? `No advertisement available. Try again in ${Math.ceil(retryIn / 60)} minute(s).`
-        : "No advertisement is available right now. Please try again later."
-      : "Unable to show advertisement. Please try again.";
+  } else {
+    litebitsStatus.textContent =
+      "Unable to show LiteBits advertisement. Please try again.";
+  }
 
   } finally {
     litebitsBusy = false;
