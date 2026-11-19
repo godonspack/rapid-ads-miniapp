@@ -9,6 +9,8 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://libtl.com/sdk.js" data-zone="12109194" data-sdk="show_12109194"></script>
 
+<script src="https://ads.litebits.io/sdk/v1.js"></script>
+
 <style>
 :root {
   --bg:#080d16;--card:#111a28;--card2:#162235;
@@ -353,6 +355,35 @@ main[hidden]{display:none!important}
     </div>
   </section>
 
+  <!-- LITEBITS REWARDED ADS -->
+<section class="network-card">
+  <div class="network-top">
+    <div class="network-icon">🎁</div>
+    <div class="network-info">
+      <h3>LiteBits Rewarded Ads</h3>
+      <p>Watch verified advertisements and qualify for a USDT reward.</p>
+    </div>
+    <div class="badge">ACTIVE</div>
+  </div>
+
+  <div class="network-details">
+    <div class="detail">Reward<strong>0.0001 USDT</strong></div>
+    <div class="detail">Minimum view<strong>8 seconds</strong></div>
+    <div class="detail">Daily limit<strong>20 views</strong></div>
+  </div>
+
+  <button class="main-button" id="litebitsWatchButton" type="button">
+    WATCH LITEBITS AD
+  </button>
+
+  <div id="litebitsStatus"
+       class="detail"
+       style="margin-top:12px;text-align:center;"
+       aria-live="polite">
+    Ready to watch a LiteBits advertisement.
+  </div>
+</section>
+
 
   <div id="telegaStatus" class="detail" style="margin-top:12px;text-align:center;" aria-live="polite">
     After a successful Monetag Interstitial claim, Rapid Ads may automatically show an additional Telega.io sponsored advertisement. Telega.io ads do not provide an extra user reward.
@@ -422,6 +453,119 @@ const TELEGA_MINIAPP_TOKEN = "35a12a81-d6c1-44a0-b0a9-ba488d36ab71";
 const TELEGA_AD_BLOCK_UUID = "06de717a-0155-4204-bb8e-a63af37421f0";
 
 const MAX_HISTORY_ITEMS = 10;
+
+  /* LITEBITS CONFIGURATION */
+const LITEBITS_API_KEY = "lba_dec4f3dd02423046ccbe86ca7699c581";
+
+const LITEBITS_PLACEMENT_ID =
+  "bee02ff9-a9f0-41c0-987c-7762f4bda93e";
+
+let litebitsAds = null;
+let litebitsBusy = false;
+
+const litebitsButton =
+  document.getElementById("litebitsWatchButton");
+
+const litebitsStatus =
+  document.getElementById("litebitsStatus");
+
+/* INITIALIZE LITEBITS */
+function initializeLiteBits() {
+  if (litebitsAds) return true;
+
+  if (typeof window.LiteBitsAds !== "function") {
+    litebitsStatus.textContent =
+      "LiteBits SDK is not ready. Please try again.";
+    return false;
+  }
+
+  try {
+    litebitsAds = new window.LiteBitsAds({
+      apiKey: LITEBITS_API_KEY,
+      placementId: LITEBITS_PLACEMENT_ID,
+      sandbox: false,
+      fallbacks: false
+    });
+
+    litebitsAds.on("rewarded", function(result) {
+      console.log("LiteBits rewarded event:", result);
+
+      litebitsStatus.textContent = result.verified
+        ? "LiteBits verified your view. Waiting for reward processing."
+        : "This view was not eligible for a reward.";
+    });
+
+    litebitsAds.on("nofill", function() {
+      litebitsStatus.textContent =
+        "No LiteBits advertisement is available right now.";
+    });
+
+    litebitsAds.on("error", function(error) {
+      console.warn("LiteBits error:", error);
+    });
+
+    return true;
+
+  } catch (error) {
+    console.error("LiteBits initialization error:", error);
+    return false;
+  }
+}
+
+/* LITEBITS WATCH BUTTON */
+litebitsButton.addEventListener("click", async function() {
+  if (litebitsBusy) return;
+
+  if (!emailRegisteredThisSession) {
+    showToast("Please register your FaucetPay email first.");
+    return;
+  }
+
+  if (!tg || !tg.initData) {
+    showToast("Please open Rapid Ads inside Telegram.");
+    return;
+  }
+
+  if (!initializeLiteBits()) {
+    showToast("LiteBits is not ready.");
+    return;
+  }
+
+  litebitsBusy = true;
+  litebitsButton.disabled = true;
+  litebitsButton.textContent = "LOADING ADVERTISEMENT...";
+
+  litebitsStatus.textContent =
+    "Loading your LiteBits advertisement...";
+
+  try {
+    const result = await litebitsAds.show();
+
+    if (result.fallback) {
+      litebitsStatus.textContent =
+        "An alternative network displayed an advertisement. No LiteBits reward was created.";
+    } else if (result.verified) {
+      litebitsStatus.textContent =
+        "View verified. Waiting for reward processing.";
+    } else {
+      litebitsStatus.textContent =
+        "Advertisement completed, but this view was not eligible for a reward.";
+    }
+
+  } catch (error) {
+    console.error("LiteBits advertisement error:", error);
+
+    litebitsStatus.textContent =
+      error.code === "NO_FILL"
+        ? "No advertisement is available right now. Please try again later."
+        : "Unable to show advertisement. Please try again.";
+
+  } finally {
+    litebitsBusy = false;
+    litebitsButton.disabled = false;
+    litebitsButton.textContent = "WATCH LITEBITS AD";
+  }
+});
 
 const monetagButton = document.getElementById("monetagWatchButton");
 const monetagStatus = document.getElementById("monetagStatus");
