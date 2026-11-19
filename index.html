@@ -495,10 +495,15 @@ function initializeLiteBits() {
         : "This view was not eligible for a reward.";
     });
 
-    litebitsAds.on("nofill", function() {
-      litebitsStatus.textContent =
-        "No LiteBits advertisement is available right now.";
-    });
+    litebitsAds.on("nofill", function(info) {
+  const retryIn = Number(info?.retryIn || 0);
+
+  litebitsStatus.textContent = retryIn > 0
+    ? `No advertisement available. Please try again in ${Math.ceil(retryIn / 60)} minute(s).`
+    : "No advertisement is available right now. Please try again later.";
+
+  console.log("LiteBits no-fill information:", info);
+});
 
     litebitsAds.on("error", function(error) {
       console.warn("LiteBits error:", error);
@@ -553,12 +558,16 @@ litebitsButton.addEventListener("click", async function() {
     }
 
   } catch (error) {
-    console.error("LiteBits advertisement error:", error);
+  console.warn("LiteBits advertisement error:", error);
 
-    litebitsStatus.textContent =
-      error.code === "NO_FILL"
-        ? "No advertisement is available right now. Please try again later."
-        : "Unable to show advertisement. Please try again.";
+  const retryIn = Number(error.retryIn || 0);
+
+  litebitsStatus.textContent =
+    error.code === "NO_FILL"
+      ? retryIn > 0
+        ? `No advertisement available. Try again in ${Math.ceil(retryIn / 60)} minute(s).`
+        : "No advertisement is available right now. Please try again later."
+      : "Unable to show advertisement. Please try again.";
 
   } finally {
     litebitsBusy = false;
